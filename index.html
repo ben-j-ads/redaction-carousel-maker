@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redaction Carousel Maker</title>
+  <style>
+    @font-face { font-family: "Bricolage Grotesque Condensed"; src: url("fonts/BricolageGrotesque-ExtraBoldCondensed.ttf") format("truetype"); font-weight: 800; font-style: normal; font-display: swap; }
+    @font-face { font-family: "Archivo"; src: url("fonts/Archivo-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: "Archivo"; src: url("fonts/Archivo-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
+    :root {
+      --paper: #eef0e4; --paper-raised: #f7f8f1; --ink: #272818; --ink-muted: #5c5e48;
+      --rule: #c9cdb5; --lime: #dcf04a; --on-lime: #272818; --moss: #56620a;
+      --font-display: "Bricolage Grotesque Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+      --font-text: Archivo, "Helvetica Neue", Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --paper: #17180d; --paper-raised: #212216; --ink: #eef0e4; --ink-muted: #a6a98f; --rule: #3d3f2e; --moss: #b9cc3a; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px 16px 48px; background: var(--paper); color: var(--ink); font-family: var(--font-text); font-weight: 500; line-height: 1.5; }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    .brandbar { display: block; width: 120px; }
+    .brandbar img { display: block; width: 100%; height: auto; }
+    h1, h2, .big, .stat-value { font-family: var(--font-display); font-weight: 800; }
+    h1 { margin: 18px 0 0; font-size: 3rem; line-height: 1; letter-spacing: -0.01em; text-transform: lowercase; }
+    h1 mark { background: linear-gradient(transparent 28%, var(--lime) 28%, var(--lime) 92%, transparent 92%); color: var(--on-lime); padding: 0 4px; margin: 0 -4px; }
+    h2 { font-size: 1.5rem; margin: 0 0 12px; }
+    .subtitle { color: var(--ink-muted); margin: 6px 0 20px; }
+    b { font-weight: 700; }
+    a { color: var(--moss); text-decoration: underline; }
+    a:hover { background: var(--lime); color: var(--on-lime); }
+    .panel { background: var(--paper-raised); border: 1px solid var(--rule); padding: 18px; margin-bottom: 16px; }
+
+    .waves { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .wave h3 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; text-transform: lowercase; }
+    label.field { display: block; margin-bottom: 10px; color: var(--ink-muted); font-size: 0.88rem; }
+    label.field span.suffix { color: var(--ink); font-weight: 700; }
+    input[type="number"], select {
+      display: block; width: 100%; margin-top: 4px; padding: 9px 10px; border: 1.5px solid var(--rule); border-radius: 0;
+      background: var(--paper); color: var(--ink); font: 700 1.05rem var(--font-text); font-variant-numeric: tabular-nums;
+    }
+    input[type="number"]:hover, select:hover { border-color: var(--ink); }
+    :focus-visible { outline: 2px solid var(--ink) !important; outline-offset: 2px; }
+    .adv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+    .adv label.field { margin: 0; }
+    .hint { color: var(--ink-muted); font-size: 0.85rem; margin: 10px 0 0; }
+    #err { color: var(--ink); background: var(--lime); font-weight: 700; padding: 8px 10px; margin-top: 12px; display: none; }
+
+    .verdict { border-left: 4px solid var(--ink); padding: 4px 0 4px 16px; margin-bottom: 18px; }
+    .verdict .label { color: var(--ink-muted); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .big { font-size: 3.4rem; line-height: 1; text-transform: lowercase; margin: 4px 0 8px; }
+    .big span { background: linear-gradient(transparent 28%, var(--lime) 28%, var(--lime) 92%, transparent 92%); color: var(--on-lime); padding: 0 6px; margin: 0 -6px; }
+    .big.none span { background: none; color: var(--ink); padding: 0; margin: 0; }
+    .plain { margin: 0; font-size: 1.02rem; }
+    .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .stat { background: var(--paper); border: 1px solid var(--rule); padding: 14px; }
+    .stat-label { color: var(--ink-muted); font-size: 0.82rem; }
+    .stat-value { font-size: 2.1rem; line-height: 1.05; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
+    .stat-help { color: var(--ink-muted); font-size: 0.78rem; line-height: 1.4; }
+
+    svg { width: 100%; height: auto; display: block; }
+    .axis { stroke: var(--ink-muted); stroke-width: 1; }
+    .zero { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 4 4; }
+    .tick { fill: var(--ink-muted); font-size: 11px; }
+    .cap { fill: var(--ink-muted); font-size: 12px; }
+    .band { fill: var(--ink-muted); opacity: .16; }
+    .ci { stroke: var(--ink); stroke-width: 6; }
+    .ci-cap { stroke: var(--ink); stroke-width: 2; }
+    .pt { fill: var(--lime); stroke: var(--ink); stroke-width: 2.5; }
+
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--rule); font-size: 0.95rem; }
+    th { color: var(--ink-muted); font-weight: 700; font-size: 0.8rem; }
+    tr.you td { background: var(--lime); color: var(--on-lime); font-weight: 700; }
+
+    button { font: 700 0.95rem var(--font-text); padding: 10px 14px; border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); border-radius: 0; cursor: pointer; margin-right: 8px; }
+    button:hover { background: var(--lime); color: var(--on-lime); }
+    .actions { margin-top: 14px; }
+
+    details.learn { border-top: 1px solid var(--rule); padding: 12px 0; }
+    details.learn:first-of-type { border-top: 0; padding-top: 0; }
+    details.learn summary { cursor: pointer; font-weight: 700; }
+    details.learn summary:hover { background: var(--lime); color: var(--on-lime); }
+    details.learn .body { color: var(--ink-muted); font-size: 0.95rem; margin-top: 10px; }
+    details.learn .body p { margin: 0 0 10px; }
+    .formula { background: var(--paper); border: 1px solid var(--rule); padding: 14px; color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88rem; overflow-x: auto; white-space: pre-wrap; }
+    .caveats p { color: var(--ink-muted); font-size: 0.95rem; margin: 0 0 10px; }
+    .caveats p:last-child { margin: 0; }
+    .caveats b { color: var(--ink); }
+    .site-foot { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--ink-muted); font-size: 0.82rem; }
+    .site-foot img { display: block; width: 150px; height: auto; margin-bottom: 8px; }
+    .site-foot p { margin: 0; }
+    .tag { display: inline-block; background: var(--lime); color: var(--on-lime); font-weight: 700; font-size: 0.7rem; padding: 0 5px; margin-right: 6px; border: 1.5px solid var(--ink); }
+    @media (max-width: 520px) { h1 { font-size: 2.4rem; } .big { font-size: 2.5rem; } .waves { gap: 10px; } .panel { padding: 14px; } }
+  
+    .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 16px; }
+    .inputs.tight { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    label.check { display: flex; gap: 8px; align-items: center; color: var(--ink); font-size: 0.95rem; margin-bottom: 8px; }
+    label.check input { accent-color: var(--moss); width: 18px; height: 18px; margin: 0; }
+    input[type="range"] { width: 100%; accent-color: var(--moss); margin: 4px 0 0; }
+    input[type="text"], textarea { display: block; width: 100%; margin-top: 4px; padding: 9px 10px; border: 1.5px solid var(--rule); border-radius: 0; background: var(--paper); color: var(--ink); font: 500 1rem var(--font-text); }
+    input[type="text"]:hover, textarea:hover { border-color: var(--ink); }
+    .out { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+    .section-h { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; text-transform: lowercase; margin: 0 0 8px; }
+    .barrow { display: grid; grid-template-columns: 120px 1fr 70px; gap: 10px; align-items: center; margin: 6px 0; font-size: 0.92rem; }
+    .barrow .track { background: var(--paper); border: 1px solid var(--rule); height: 18px; position: relative; }
+    .barrow .fill { background: var(--ink); height: 100%; }
+    .barrow .fill.lime { background: var(--lime); border-right: 2px solid var(--ink); }
+    .barrow .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .tbl-wrap { overflow-x: auto; }
+    @media (max-width: 520px) { .barrow { grid-template-columns: 90px 1fr 56px; } }
+
+    .slides { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .scard { border: 1px solid var(--rule); background: var(--paper); padding: 8px; }
+    .scard canvas { display: block; width: 100%; height: auto; }
+    .scard .t { font-size: 0.82rem; color: var(--ink-muted); margin: 6px 0 4px; font-weight: 700; }
+    .scard .n { font-size: 0.8rem; color: var(--ink); background: var(--lime); padding: 2px 6px; margin-bottom: 6px; font-weight: 700; }
+    .scard button { margin: 0; width: 100%; padding: 6px 8px; font-size: 0.85rem; }
+    code { font-family: ui-monospace, Menlo, monospace; font-size: 0.88em; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="brandbar" href="https://github.com/ben-j-ads" aria-label="ben.j.ads">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="logo/benjads-base-paper-transparent.svg"><img src="logo/benjads-base-olive-transparent.svg" alt="ben.j.ads"></picture>
+    </a>
+    <h1>redaction <mark>carousel maker</mark></h1>
+    <p class="subtitle">Write the post in plain text. Get slides with a lime highlighter on the point and a redaction bar on the beat you would rather not say.</p>
+
+    <section class="panel">
+      <label class="field">Your post, one slide per block, blocks separated by a line of three dashes
+        <textarea id="src" rows="22" spellcheck="false" style="font-family: ui-monospace, Menlo, monospace; font-size: .88rem; line-height: 1.45"></textarea></label>
+      <div class="inputs tight" style="margin-top:12px">
+        <label class="field">Your handle (on the cover and sign-off)<input type="text" id="handle" maxlength="40"></label>
+        <label class="field">Ground<select id="ground"><option value="paper" selected>Paper</option><option value="olive">Olive (night shift)</option></select></label>
+        <label class="check" style="align-self:end"><input type="checkbox" id="made"> Add the "made with ben.j.ads" mark</label>
+      </div>
+      <div id="err" role="alert"></div>
+    </section>
+
+    <section class="panel">
+      <div class="actions" style="margin-top:0;margin-bottom:14px"><button id="all" class="primary" style="background:var(--lime);color:var(--on-lime)">Download all</button><button id="copy">Copy link</button><span id="copied" class="hint" style="margin-left:4px"></span></div>
+      <div id="slides" class="slides"></div>
+      <p class="hint">Each slide is a 1080 x 1350 PNG, the 4:5 size for carousels. Wait for the fonts to load if the first render looks plain.</p>
+    </section>
+
+    <section class="panel">
+      <h2>The format</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Slide</th><th>Fields</th></tr></thead>
+        <tbody>
+          <tr><td>cover</td><td>kicker, headline, caption (optional), grid: yes (optional notebook grid)</td></tr>
+          <tr><td>point</td><td>headline, kicker (optional), body (optional), source (optional)</td></tr>
+          <tr><td>figure</td><td>kicker, headline (optional), unit, source, and one <code>row: label | value</code> per bar. Add <code>| hero</code> to highlight one bar</td></tr>
+          <tr><td>conclusion</td><td>headline, lead, kicker (optional), source (optional)</td></tr>
+          <tr><td>signoff</td><td>footnote, line (optional)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="hint"><b>*words*</b> puts a lime highlighter behind them. <b>[[words]]</b> hides them behind a redaction bar with a lime tab. Use one highlight per slide: if two things are highlighted, neither is. Never redact a number the slide depends on.</p>
+    </section>
+
+    <section class="panel caveats">
+      <h2>Read this before you post</h2>
+      <p><b>Replace the placeholder numbers.</b> The sample figure is not data. Never publish invented numbers.</p>
+      <p><b>The look is the ben.j.ads kit.</b> Paper ground, condensed lowercase headlines, lime as a mark and not a ground, square corners. The wordmark is the supplied file and is not retyped.</p>
+      <p><b>Check the export.</b> Text wraps by width and long headlines can run past six lines. Shorten them if a slide looks crowded.</p>
+    </section>
+
+    <footer class="site-foot">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="logo/benjads-footnote-paper-transparent.svg"><img src="logo/benjads-footnote-olive-transparent.svg" alt="ben.j.ads"></picture>
+      <p><span class="tag">1</span>Layout rules from the ben.j.ads carousel generator. Marketing science, given away free, for people who spend money.</p>
+    </footer>
+  </div>
+  <script>
+
+    // ---- shared helpers ----
+    const $ = (id) => document.getElementById(id);
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const sgn = (v, dp = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(dp);
+    const fmtN = (n) => Math.round(n).toLocaleString('en-US');
+    const fmtMoney = (n) => '$' + Math.round(n).toLocaleString('en-US');
+    function normCdf(x) {
+      const s = x < 0 ? -1 : 1, t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+      const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-(x * x) / 2);
+      return 0.5 * (1 + s * y);
+    }
+    function normQuantile(p) {
+      let lo = -10, hi = 10;
+      for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (normCdf(m) < p) lo = m; else hi = m; }
+      return (lo + hi) / 2;
+    }
+    // Inputs <-> URL hash, so a link carries the numbers.
+    function bindInputs(ids, defaults, onChange) {
+      const q = {};
+      if (location.hash.length > 1) location.hash.slice(1).split('&').forEach((kv) => {
+        const [k, val] = kv.split('=');
+        if (k in defaults && val !== undefined && val !== '') q[k] = decodeURIComponent(val);
+      });
+      const v0 = Object.assign({}, defaults, q);
+      for (const id of ids) {
+        const el = $(id); if (!el) continue;
+        if (el.type === 'checkbox') el.checked = String(v0[id]) === '1' || v0[id] === true || v0[id] === 'true'; else el.value = v0[id];
+      }
+      const handler = () => {
+        onChange();
+        try { history.replaceState(null, '', '#' + ids.filter((id) => $(id)).map((id) => `${id}=${encodeURIComponent($(id).type === 'checkbox' ? ($(id).checked ? 1 : 0) : $(id).value)}`).join('&')); } catch (e) {}
+      };
+      ids.forEach((id) => { const el = $(id); if (!el) return; el.addEventListener('input', handler); el.addEventListener('change', handler); });
+      handler();
+    }
+    function wireCopy(btnId, noteId) {
+      const b = $(btnId); if (!b) return;
+      b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(location.href); $(noteId).textContent = 'Link copied.'; }
+        catch (e) { $(noteId).textContent = 'Copy the address bar. It holds your numbers.'; }
+        setTimeout(() => { $(noteId).textContent = ''; }, 2500);
+      });
+    }
+    // Share card: 1080 x 1350 paper ground, wordmark, kicker, headline, big line, muted lines, optional extra drawing, footnote.
+    async function makeCard(o) {
+      try { await document.fonts.load('800 100px "Bricolage Grotesque Condensed"'); await document.fonts.load('500 30px Archivo'); await document.fonts.load('700 30px Archivo'); } catch (e) {}
+      const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const x = c.getContext('2d');
+      const PAPER = '#eef0e4', INK = '#272818', MUTED = '#5c5e48', LIME = '#dcf04a';
+      x.fillStyle = PAPER; x.fillRect(0, 0, W, H);
+      const disp = (s) => `800 ${s}px "Bricolage Grotesque Condensed", "Arial Narrow", sans-serif`;
+      const txt = (s, w = 500) => `${w} ${s}px Archivo, Arial, sans-serif`;
+      x.font = disp(64); x.textBaseline = 'alphabetic';
+      let cx = 80; const wy = 130;
+      for (const part of ['ben', 'j', 'ads']) {
+        x.fillStyle = INK; x.fillText(part, cx, wy); cx += x.measureText(part).width;
+        if (part !== 'ads') { x.fillStyle = LIME; x.strokeStyle = INK; x.lineWidth = 3; x.fillRect(cx + 4, wy - 14, 14, 14); x.strokeRect(cx + 4, wy - 14, 14, 14); cx += 24; }
+      }
+      x.fillStyle = MUTED; x.font = txt(30, 700); x.fillText((o.kicker || '').toUpperCase(), 80, 250);
+      let fs = 200; x.font = disp(fs);
+      while (x.measureText(o.headline).width > W - 200 && fs > 70) { fs -= 8; x.font = disp(fs); }
+      const mw = x.measureText(o.headline).width;
+      if (o.hl) { x.fillStyle = LIME; x.fillRect(70, 280 + fs * 0.02, mw + 20, fs * 0.72); }
+      x.fillStyle = INK; x.fillText(o.headline, 80, 280 + fs * 0.78);
+      let y = 280 + fs * 0.78 + 190;
+      if (o.big) {
+        let bs = 130; x.font = disp(bs);
+        while (x.measureText(o.big).width > W - 160 && bs > 50) { bs -= 6; x.font = disp(bs); }
+        x.fillStyle = INK; x.fillText(o.big, 80, y); y += 70;
+      }
+      x.fillStyle = MUTED; x.font = txt(36);
+      for (const l of (o.lines || [])) { x.fillText(l, 80, y); y += 54; }
+      if (o.extra) y = o.extra(x, y + 30, { W, H, INK, LIME, MUTED, PAPER, disp, txt }) || y;
+      x.fillStyle = LIME; x.strokeStyle = INK; x.lineWidth = 3; x.fillRect(80, H - 120, 34, 34); x.strokeRect(80, H - 120, 34, 34);
+      x.fillStyle = INK; x.font = txt(24, 700); x.fillText('1', 91, H - 95);
+      x.fillStyle = MUTED; x.font = txt(26); x.fillText(o.foot || '', 130, H - 94);
+      x.fillStyle = INK; x.font = disp(40); x.textAlign = 'right'; x.fillText('ben.j.ads', W - 80, H - 90); x.textAlign = 'left';
+      c.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (o.file || 'ben-j-ads') + '.png'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }, 'image/png');
+    }
+
+
+    const IDS = ['src', 'handle', 'ground', 'made'];
+    const DEFAULTS = { src: "cover\nkicker: Lab notes / no. 1\nheadline: most ad stats have [[no source]]\ncaption: Three ways to check one before you repeat it.\ngrid: yes\n---\npoint\nkicker: Check one\nheadline: find the *original* study, not the blog quoting it\nbody: A stat repeated by ten sites is one stat with ten footnotes pointing at each other.\n---\nfigure\nkicker: Fig. 1 / Placeholder numbers\nheadline: replace these with yours\nunit: %\nrow: Example A | 40\nrow: Example B | 31 | hero\nrow: Example C | 12\nsource: Illustrative only. Not real data.\n---\nconclusion\nkicker: The answer\nheadline: trace it to the *source*\nlead: If you cannot find where a number came from, do not repeat it.\nsource: Example copy for the format.\n---\nsignoff\nfootnote: you didn't see this account, don't follow me.\nline: Marketing science, given away free.", handle: '@yourhandle', ground: 'paper', made: 0 };
+    const LOGO_SRC = { olive: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NzQgMjg4IiB3aWR0aD0iNzc0IiBoZWlnaHQ9IjI4OCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJiZW4uai5hZHMiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU0Ljg1IDIwNy4xNCkgc2tld1goLTkpIj48cGF0aCBmaWxsPSIjMjcyODE4IiBkPSJNNTIuNiAyLjQwMDAwMDAwMDAwMDAwMDRRNDYuODAwMDAwMDAwMDAwMDA0IDIuNDAwMDAwMDAwMDAwMDAwNCA0Mi40MDAwMDAwMDAwMDAwMDYgLTAuODk5OTk5OTk5OTk5OTk5OVEzOC4wIC00LjIgMzUuNDAwMDAwMDAwMDAwMDA2IC0xMS40UTMyLjgwMDAwMDAwMDAwMDAwNCAtMTguNiAzMS44IC0zMC4yMDAwMDAwMDAwMDAwMDNIMzAuMjAwMDAwMDAwMDAwMDAzVjAuMEgzLjgwMDAwMDAwMDAwMDAwMDNWLTQ5LjgwMDAwMDAwMDAwMDAwNFYtMTM2LjBIMzQuNlYtMTE2LjJRMzQuNiAtMTA4LjIgMzQuMSAtMTAwLjdRMzMuNiAtOTMuMiAzMi43IC04Ni4xUTMxLjggLTc5LjAgMzAuNDAwMDAwMDAwMDAwMDAyIC03Mi4ySDMyLjRRMzMuODAwMDAwMDAwMDAwMDA0IC04NC4yIDM2LjcgLTkyLjBRMzkuNiAtOTkuODAwMDAwMDAwMDAwMDEgNDQuMSAtMTAzLjcwMDAwMDAwMDAwMDAyUTQ4LjYgLTEwNy42MDAwMDAwMDAwMDAwMSA1NC42IC0xMDcuNjAwMDAwMDAwMDAwMDFRNjIuODAwMDAwMDAwMDAwMDA0IC0xMDcuNjAwMDAwMDAwMDAwMDEgNjguNjAwMDAwMDAwMDAwMDEgLTEwMC43MDAwMDAwMDAwMDAwMlE3NC40IC05My44MDAwMDAwMDAwMDAwMSA3Ny40IC04MS40UTgwLjQgLTY5LjAgODAuNCAtNTIuMFE4MC40IC0zMi42IDc2LjcgLTIwLjZRNzMuMCAtOC42IDY2LjcgLTMuMDk5OTk5OTk5OTk5OTk5NlE2MC40MDAwMDAwMDAwMDAwMDYgMi40MDAwMDAwMDAwMDAwMDA0IDUyLjYgMi40MDAwMDAwMDAwMDAwMDA0Wk00Mi44MDAwMDAwMDAwMDAwMDQgLTIwLjhRNDUuMiAtMjAuOCA0Ni41IC0yNC4zUTQ3LjgwMDAwMDAwMDAwMDAwNCAtMjcuOCA0OC40MDAwMDAwMDAwMDAwMDYgLTM0LjVRNDkuMCAtNDEuMiA0OS4wIC01MC42UTQ5LjAgLTYxLjQwMDAwMDAwMDAwMDAwNiA0OC40MDAwMDAwMDAwMDAwMDYgLTY4LjFRNDcuODAwMDAwMDAwMDAwMDA0IC03NC44IDQ2LjQwMDAwMDAwMDAwMDAwNiAtNzcuOVE0NS4wIC04MS4wIDQyLjgwMDAwMDAwMDAwMDAwNCAtODEuMFE0MS4yIC04MS4wIDM5LjkwMDAwMDAwMDAwMDAwNiAtNzkuNlEzOC42IC03OC4yIDM3LjYgLTc1LjVRMzYuNiAtNzIuOCAzNi4wIC02OS4wUTM1LjQgLTY1LjIgMzUuMCAtNjAuNlEzNC42IC01Ni4wIDM0LjYgLTUwLjgwMDAwMDAwMDAwMDAwNFYtNDYuNlEzNC42IC00MS44MDAwMDAwMDAwMDAwMDQgMzUuMSAtMzcuMlEzNS42IC0zMi42IDM2LjcgLTI4LjkwMDAwMDAwMDAwMDAwMlEzNy44MDAwMDAwMDAwMDAwMDQgLTI1LjIwMDAwMDAwMDAwMDAwMyAzOS4zMDAwMDAwMDAwMDAwMDQgLTIzLjBRNDAuODAwMDAwMDAwMDAwMDA0IC0yMC44IDQyLjgwMDAwMDAwMDAwMDAwNCAtMjAuOFpNMTIxLjIgMi40MDAwMDAwMDAwMDAwMDA0UTEwOS42MDAwMDAwMDAwMDAwMSAyLjQwMDAwMDAwMDAwMDAwMDQgMTAyLjAgLTEuNFE5NC40IC01LjIgOTAuMCAtMTIuMjAwMDAwMDAwMDAwMDAxUTg1LjYwMDAwMDAwMDAwMDAxIC0xOS4yMDAwMDAwMDAwMDAwMDMgODMuODAwMDAwMDAwMDAwMDEgLTI5LjAwMDAwMDAwMDAwMDAwNFE4Mi4wIC0zOC44MDAwMDAwMDAwMDAwMDQgODIuMCAtNTAuNlE4Mi4wIC02MS44MDAwMDAwMDAwMDAwMDQgODMuNyAtNzIuMFE4NS40IC04Mi4yIDg5LjYwMDAwMDAwMDAwMDAxIC05MC40UTkzLjgwMDAwMDAwMDAwMDAxIC05OC42MDAwMDAwMDAwMDAwMSAxMDEuMjAwMDAwMDAwMDAwMDIgLTEwMy4zMDAwMDAwMDAwMDAwMVExMDguNjAwMDAwMDAwMDAwMDEgLTEwOC4wIDEyMC4yIC0xMDguMFExMzAuOCAtMTA4LjAgMTM4LjAgLTEwNC4wUTE0NS4yIC0xMDAuMCAxNDkuMyAtOTIuNFExNTMuNCAtODQuODAwMDAwMDAwMDAwMDEgMTU0LjYwMDAwMDAwMDAwMDAyIC03NC4xMDAwMDAwMDAwMDAwMVExNTUuOCAtNjMuNDAwMDAwMDAwMDAwMDA2IDE1NC4wIC01MC4yTDEwMi40IC00OC4yVi02Mi42TDEyOC4wIC02My42TDEyNS4yIC01My42UTEyNi4yIC02NC40IDEyNi4wIC03MS4xMDAwMDAwMDAwMDAwMVExMjUuODAwMDAwMDAwMDAwMDEgLTc3LjgwMDAwMDAwMDAwMDAxIDEyNC40IC04MC45UTEyMy4wIC04NC4wIDEyMC4yIC04NC4wUTExNy4yIC04NC4wIDExNS42IC04MC41UTExNC4wIC03Ny4wIDExMy40IC03MC41UTExMi44MDAwMDAwMDAwMDAwMSAtNjQuMCAxMTIuODAwMDAwMDAwMDAwMDEgLTU0LjgwMDAwMDAwMDAwMDAwNFExMTIuODAwMDAwMDAwMDAwMDEgLTM2LjAgMTE0LjgwMDAwMDAwMDAwMDAxIC0yOC4yMDAwMDAwMDAwMDAwMDNRMTE2LjgwMDAwMDAwMDAwMDAxIC0yMC40MDAwMDAwMDAwMDAwMDIgMTIxLjIgLTIwLjQwMDAwMDAwMDAwMDAwMlExMjMuNjAwMDAwMDAwMDAwMDEgLTIwLjQwMDAwMDAwMDAwMDAwMiAxMjQuOSAtMjIuMzAwMDAwMDAwMDAwMDA0UTEyNi4yIC0yNC4yMDAwMDAwMDAwMDAwMDMgMTI2LjcgLTI3LjMwMDAwMDAwMDAwMDAwNFExMjcuMiAtMzAuNDAwMDAwMDAwMDAwMDAyIDEyNy4yIC0zNC4zMDAwMDAwMDAwMDAwMDRRMTI3LjIgLTM4LjIgMTI2LjgwMDAwMDAwMDAwMDAxIC00Mi4yTDE1NS4wIC0zOS42UTE1Ni40IC0zMi42IDE1NS43IC0yNS4yMDAwMDAwMDAwMDAwMDNRMTU1LjAgLTE3LjggMTUxLjQgLTExLjVRMTQ3LjggLTUuMiAxNDAuNSAtMS40UTEzMy4yIDIuNDAwMDAwMDAwMDAwMDAwNCAxMjEuMiAyLjQwMDAwMDAwMDAwMDAwMDRaTTE1OC40MDAwMDAwMDAwMDAwMyAwLjBWLTY0LjYwMDAwMDAwMDAwMDAxVi0xMDUuNjAwMDAwMDAwMDAwMDFIMTg0LjhWLTY4LjYwMDAwMDAwMDAwMDAxSDE4Ni40MDAwMDAwMDAwMDAwM1ExODYuNDAwMDAwMDAwMDAwMDMgLTgzLjIgMTg5LjIwMDAwMDAwMDAwMDA1IC05MS44MDAwMDAwMDAwMDAwMVExOTIuMDAwMDAwMDAwMDAwMDMgLTEwMC40IDE5Ny4yMDAwMDAwMDAwMDAwNSAtMTA0LjJRMjAyLjQwMDAwMDAwMDAwMDAzIC0xMDguMCAyMDkuNjAwMDAwMDAwMDAwMDIgLTEwOC4wUTIyMi4wMDAwMDAwMDAwMDAwMyAtMTA4LjAgMjI3LjYwMDAwMDAwMDAwMDAyIC05Ny45UTIzMy4yMDAwMDAwMDAwMDAwNSAtODcuODAwMDAwMDAwMDAwMDEgMjMzLjIwMDAwMDAwMDAwMDA1IC02Ni4wVjAuMEgyMDIuMjAwMDAwMDAwMDAwMDJWLTU3LjZRMjAyLjIwMDAwMDAwMDAwMDAyIC02OC44IDIwMS4xMDAwMDAwMDAwMDAwMiAtNzMuODAwMDAwMDAwMDAwMDFRMjAwLjAwMDAwMDAwMDAwMDAzIC03OC44MDAwMDAwMDAwMDAwMSAxOTYuNDAwMDAwMDAwMDAwMDMgLTc4LjgwMDAwMDAwMDAwMDAxUTE5Mi44IC03OC44MDAwMDAwMDAwMDAwMSAxOTEuMyAtNzQuNjAwMDAwMDAwMDAwMDFRMTg5LjggLTcwLjQgMTg5LjUgLTYzLjYwMDAwMDAwMDAwMDAxUTE4OS4yMDAwMDAwMDAwMDAwMiAtNTYuODAwMDAwMDAwMDAwMDA0IDE4OS4yMDAwMDAwMDAwMDAwMiAtNDguODAwMDAwMDAwMDAwMDA0VjAuMFoiLz48cmVjdCBmaWxsPSIjZGNmMDRhIiB4PSIyMzcuMzAiIHk9Ii0zMy4wMCIgd2lkdGg9IjMzLjAwIiBoZWlnaHQ9IjMzLjAwIi8+PHJlY3QgZmlsbD0iI2RjZjA0YSIgeD0iMzE4LjcwIiB5PSItMzMuMDAiIHdpZHRoPSIzMy4wMCIgaGVpZ2h0PSIzMy4wMCIvPjxwYXRoIGZpbGw9IiMyNzI4MTgiIGQ9Ik0yODEuMiAzMC42UTI3OC40MDAwMDAwMDAwMDAwMyAzMC42IDI3NS45MDAwMDAwMDAwMDAwMyAzMC41UTI3My40MDAwMDAwMDAwMDAwMyAzMC40MDAwMDAwMDAwMDAwMDIgMjcwLjYgMjkuOEwyNjguMCA0LjJRMjcyLjIgNC44MDAwMDAwMDAwMDAwMDEgMjc1LjEgMi40MDAwMDAwMDAwMDAwMDA0UTI3OC4wIDAuMCAyNzguMCAtNi44MDAwMDAwMDAwMDAwMDFWLTEwNS42MDAwMDAwMDAwMDAwMUgzMTAuNDAwMDAwMDAwMDAwMDNWLTYuNFEzMTAuNDAwMDAwMDAwMDAwMDMgMy4yIDMwOC4xIDEwLjFRMzA1LjggMTcuMCAzMDEuOCAyMS42UTI5Ny44IDI2LjIwMDAwMDAwMDAwMDAwMyAyOTIuNSAyOC40MDAwMDAwMDAwMDAwMDJRMjg3LjIgMzAuNiAyODEuMiAzMC42Wk0yOTQuMiAtMTEyLjgwMDAwMDAwMDAwMDAxUTI4NS42IC0xMTIuODAwMDAwMDAwMDAwMDEgMjgwLjggLTExNi40UTI3Ni4wIC0xMjAuMDAwMDAwMDAwMDAwMDEgMjc2LjAgLTEyNi44MDAwMDAwMDAwMDAwMVEyNzYuMCAtMTMzLjYgMjgwLjggLTEzNy4zUTI4NS42IC0xNDEuMCAyOTQuMiAtMTQxLjBRMzAzLjAgLTE0MS4wIDMwNy43IC0xMzcuM1EzMTIuNCAtMTMzLjYgMzEyLjQgLTEyNi44MDAwMDAwMDAwMDAwMVEzMTIuNCAtMTIwLjAwMDAwMDAwMDAwMDAxIDMwNy43IC0xMTYuNFEzMDMuMCAtMTEyLjgwMDAwMDAwMDAwMDAxIDI5NC4yIC0xMTIuODAwMDAwMDAwMDAwMDFaTTM3NS44MDAwMDAwMDAwMDAwNyAyLjQwMDAwMDAwMDAwMDAwMDRRMzY5LjQwMDAwMDAwMDAwMDAzIDIuNDAwMDAwMDAwMDAwMDAwNCAzNjQuNSAtMC41OTk5OTk5OTk5OTk5OTk5UTM1OS42IC0zLjYgMzU2LjgwMDAwMDAwMDAwMDA3IC05LjIwMDAwMDAwMDAwMDAwMVEzNTQuMDAwMDAwMDAwMDAwMDYgLTE0LjggMzU0LjAwMDAwMDAwMDAwMDA2IC0yMi42UTM1NC4wMDAwMDAwMDAwMDAwNiAtMzEuNiAzNTcuMjAwMDAwMDAwMDAwMDUgLTM3LjZRMzYwLjQwMDAwMDAwMDAwMDAzIC00My42IDM2NS40MDAwMDAwMDAwMDAwMyAtNDcuNVEzNzAuNDAwMDAwMDAwMDAwMDMgLTUxLjQwMDAwMDAwMDAwMDAwNiAzNzUuOTAwMDAwMDAwMDAwMDMgLTUzLjdRMzgxLjQwMDAwMDAwMDAwMDAzIC01Ni4wIDM4NS44MDAwMDAwMDAwMDAwNyAtNTcuNlEzOTAuODAwMDAwMDAwMDAwMDcgLTU5LjQwMDAwMDAwMDAwMDAwNiAzOTMuNTAwMDAwMDAwMDAwMDYgLTYxLjQwMDAwMDAwMDAwMDAwNlEzOTYuMjAwMDAwMDAwMDAwMDUgLTYzLjQwMDAwMDAwMDAwMDAwNiAzOTcuMjAwMDAwMDAwMDAwMDUgLTY2LjFRMzk4LjIwMDAwMDAwMDAwMDA1IC02OC44IDM5OC4yMDAwMDAwMDAwMDAwNSAtNzIuOFEzOTguMjAwMDAwMDAwMDAwMDUgLTc4LjQgMzk2LjYgLTgxLjJRMzk1LjAwMDAwMDAwMDAwMDA2IC04NC4wIDM5Mi4wMDAwMDAwMDAwMDAwNiAtODQuMFEzODkuMjAwMDAwMDAwMDAwMDUgLTg0LjAgMzg3LjYgLTgxLjVRMzg2LjAwMDAwMDAwMDAwMDA2IC03OS4wIDM4NS42IC03My45UTM4NS4yMDAwMDAwMDAwMDAwNSAtNjguOCAzODYuMDAwMDAwMDAwMDAwMDYgLTYxLjBMMzU2LjAwMDAwMDAwMDAwMDA2IC02NC4yUTM1NS40MDAwMDAwMDAwMDAwMyAtNzQuOCAzNTcuNiAtODMuMFEzNTkuODAwMDAwMDAwMDAwMDcgLTkxLjIgMzY0LjUwMDAwMDAwMDAwMDA2IC05Ni44MDAwMDAwMDAwMDAwMVEzNjkuMjAwMDAwMDAwMDAwMDUgLTEwMi40IDM3Ni40MDAwMDAwMDAwMDAwMyAtMTA1LjJRMzgzLjYgLTEwOC4wIDM5My4yMDAwMDAwMDAwMDAwNSAtMTA4LjBRNDA0LjgwMDAwMDAwMDAwMDA3IC0xMDguMCA0MTIuNzAwMDAwMDAwMDAwMDUgLTEwMy4zMDAwMDAwMDAwMDAwMVE0MjAuNiAtOTguNjAwMDAwMDAwMDAwMDEgNDI0LjYgLTg4LjlRNDI4LjYgLTc5LjIgNDI4LjYgLTYzLjgwMDAwMDAwMDAwMDAwNFYtMzguNDAwMDAwMDAwMDAwMDA2UTQyOC42IC0zMi4wIDQyOC42IC0yNS42UTQyOC42IC0xOS4yMDAwMDAwMDAwMDAwMDMgNDI4LjYgLTEyLjhRNDI4LjYgLTYuNCA0MjguNiAwLjBINDAxLjgwMDAwMDAwMDAwMDA3UTQwMS44MDAwMDAwMDAwMDAwNyAtNi44MDAwMDAwMDAwMDAwMDEgNDAxLjgwMDAwMDAwMDAwMDA3IC0xMy41MDAwMDAwMDAwMDAwMDJRNDAxLjgwMDAwMDAwMDAwMDA3IC0yMC4yMDAwMDAwMDAwMDAwMDMgNDAxLjgwMDAwMDAwMDAwMDA3IC0yNy4wSDQwMC4yMDAwMDAwMDAwMDAwNVEzOTkuNDAwMDAwMDAwMDAwMDMgLTE3LjQwMDAwMDAwMDAwMDAwMiAzOTYuMjAwMDAwMDAwMDAwMDUgLTEwLjhRMzkzLjAwMDAwMDAwMDAwMDA2IC00LjIgMzg3LjgwMDAwMDAwMDAwMDA3IC0wLjg5OTk5OTk5OTk5OTk5OTlRMzgyLjYgMi40MDAwMDAwMDAwMDAwMDA0IDM3NS44MDAwMDAwMDAwMDAwNyAyLjQwMDAwMDAwMDAwMDAwMDRaTTM4OS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyUTM5MS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyIDM5My4zMDAwMDAwMDAwMDAwNyAtMjMuNlEzOTQuODAwMDAwMDAwMDAwMDcgLTI0LjggMzk1LjgwMDAwMDAwMDAwMDA3IC0yNy4wUTM5Ni44MDAwMDAwMDAwMDAwNyAtMjkuMjAwMDAwMDAwMDAwMDAzIDM5Ny4zMDAwMDAwMDAwMDAwNyAtMzEuOFEzOTcuODAwMDAwMDAwMDAwMDcgLTM0LjQgMzk3LjgwMDAwMDAwMDAwMDA3IC0zNy4wVi01MS4yTDQwMi4wMDAwMDAwMDAwMDAwNiAtNTQuNDAwMDAwMDAwMDAwMDA2UTQwMC40MDAwMDAwMDAwMDAwMyAtNTIuMCAzOTguNDAwMDAwMDAwMDAwMDMgLTUwLjNRMzk2LjQwMDAwMDAwMDAwMDAzIC00OC42IDM5NC4zMDAwMDAwMDAwMDAwNyAtNDcuM1EzOTIuMjAwMDAwMDAwMDAwMDUgLTQ2LjAgMzkwLjMwMDAwMDAwMDAwMDA3IC00NC42UTM4OC40MDAwMDAwMDAwMDAwMyAtNDMuMiAzODcuMCAtNDEuNlEzODUuNiAtNDAuMCAzODQuNzAwMDAwMDAwMDAwMDUgLTM3LjZRMzgzLjgwMDAwMDAwMDAwMDA3IC0zNS4yIDM4My44MDAwMDAwMDAwMDAwNyAtMzEuOFEzODMuODAwMDAwMDAwMDAwMDcgLTI2LjQwMDAwMDAwMDAwMDAwMiAzODUuNzAwMDAwMDAwMDAwMDUgLTI0LjQwMDAwMDAwMDAwMDAwMlEzODcuNiAtMjIuNDAwMDAwMDAwMDAwMDAyIDM4OS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyWk00NTkuMjAwMDAwMDAwMDAwMDUgMi40MDAwMDAwMDAwMDAwMDA0UTQ1MC4wMDAwMDAwMDAwMDAwNiAyLjQwMDAwMDAwMDAwMDAwMDQgNDQzLjcwMDAwMDAwMDAwMDA1IC00LjJRNDM3LjQwMDAwMDAwMDAwMDAzIC0xMC44IDQzNC4yMDAwMDAwMDAwMDAwNSAtMjMuMjAwMDAwMDAwMDAwMDAzUTQzMS4wMDAwMDAwMDAwMDAwNiAtMzUuNiA0MzEuMDAwMDAwMDAwMDAwMDYgLTUyLjZRNDMxLjAwMDAwMDAwMDAwMDA2IC03MS42MDAwMDAwMDAwMDAwMSA0MzQuNiAtODMuODAwMDAwMDAwMDAwMDFRNDM4LjIwMDAwMDAwMDAwMDA1IC05Ni4wIDQ0NC4xIC0xMDEuODAwMDAwMDAwMDAwMDFRNDUwLjAwMDAwMDAwMDAwMDA2IC0xMDcuNjAwMDAwMDAwMDAwMDEgNDU3LjIwMDAwMDAwMDAwMDA1IC0xMDcuNjAwMDAwMDAwMDAwMDFRNDYzLjYgLTEwNy42MDAwMDAwMDAwMDAwMSA0NjcuOTAwMDAwMDAwMDAwMDMgLTEwMy40UTQ3Mi4yMDAwMDAwMDAwMDAwNSAtOTkuMiA0NzQuOTAwMDAwMDAwMDAwMDMgLTkxLjMwMDAwMDAwMDAwMDAxUTQ3Ny42IC04My40IDQ3OS4wMDAwMDAwMDAwMDAwNiAtNzIuMkg0ODEuMDAwMDAwMDAwMDAwMDZRNDc5LjgwMDAwMDAwMDAwMDA3IC03OS4wIDQ3OC45MDAwMDAwMDAwMDAxIC04NS40UTQ3OC4wMDAwMDAwMDAwMDAwNiAtOTEuODAwMDAwMDAwMDAwMDEgNDc3LjQwMDAwMDAwMDAwMDEgLTk3LjVRNDc2LjgwMDAwMDAwMDAwMDA3IC0xMDMuMiA0NzYuODAwMDAwMDAwMDAwMDcgLTEwOC4wVi0xMzYuMEg1MDcuNlYtNDkuNlYwLjBINDgxLjIwMDAwMDAwMDAwMDA1Vi0zMC4yMDAwMDAwMDAwMDAwMDNINDc5LjZRNDc4LjYgLTE3LjggNDc1LjkwMDAwMDAwMDAwMDAzIC0xMC42MDAwMDAwMDAwMDAwMDFRNDczLjIwMDAwMDAwMDAwMDA1IC0zLjQwMDAwMDAwMDAwMDAwMDQgNDY5LjAwMDAwMDAwMDAwMDA2IC0wLjVRNDY0LjgwMDAwMDAwMDAwMDA3IDIuNDAwMDAwMDAwMDAwMDAwNCA0NTkuMjAwMDAwMDAwMDAwMDUgMi40MDAwMDAwMDAwMDAwMDA0Wk00NjguODAwMDAwMDAwMDAwMDcgLTIwLjhRNDcwLjgwMDAwMDAwMDAwMDA3IC0yMC44IDQ3Mi4zMDAwMDAwMDAwMDAwNyAtMjMuMFE0NzMuODAwMDAwMDAwMDAwMDcgLTI1LjIwMDAwMDAwMDAwMDAwMyA0NzQuODAwMDAwMDAwMDAwMDcgLTI4LjkwMDAwMDAwMDAwMDAwMlE0NzUuODAwMDAwMDAwMDAwMDcgLTMyLjYgNDc2LjMwMDAwMDAwMDAwMDA3IC0zNy4yUTQ3Ni44MDAwMDAwMDAwMDAwNyAtNDEuODAwMDAwMDAwMDAwMDA0IDQ3Ni44MDAwMDAwMDAwMDAwNyAtNDYuNlYtNTAuODAwMDAwMDAwMDAwMDA0UTQ3Ni44MDAwMDAwMDAwMDAwNyAtNTYuMCA0NzYuNDAwMDAwMDAwMDAwMSAtNjAuNlE0NzYuMDAwMDAwMDAwMDAwMDYgLTY1LjIgNDc1LjMwMDAwMDAwMDAwMDA3IC02OS4wUTQ3NC42IC03Mi44IDQ3My42IC03NS41UTQ3Mi42IC03OC4yIDQ3MS40MDAwMDAwMDAwMDAwMyAtNzkuNlE0NzAuMjAwMDAwMDAwMDAwMDUgLTgxLjAgNDY4LjYgLTgxLjBRNDY2LjYgLTgxLjAgNDY1LjIwMDAwMDAwMDAwMDA1IC03Ny45UTQ2My44MDAwMDAwMDAwMDAwNyAtNzQuOCA0NjMuMSAtNjguMVE0NjIuNDAwMDAwMDAwMDAwMDMgLTYxLjQwMDAwMDAwMDAwMDAwNiA0NjIuNDAwMDAwMDAwMDAwMDMgLTUwLjgwMDAwMDAwMDAwMDAwNFE0NjIuNDAwMDAwMDAwMDAwMDMgLTQxLjQwMDAwMDAwMDAwMDAwNiA0NjMuMCAtMzQuNlE0NjMuNiAtMjcuOCA0NjUuMCAtMjQuM1E0NjYuNDAwMDAwMDAwMDAwMDMgLTIwLjggNDY4LjgwMDAwMDAwMDAwMDA3IC0yMC44Wk01NDYuODAwMDAwMDAwMDAwMSAyLjQwMDAwMDAwMDAwMDAwMDRRNTM0LjgwMDAwMDAwMDAwMDEgMi40MDAwMDAwMDAwMDAwMDA0IDUyNi45MDAwMDAwMDAwMDAxIC0xLjFRNTE5LjAgLTQuNjAwMDAwMDAwMDAwMDAwNSA1MTQuOSAtMTAuNzAwMDAwMDAwMDAwMDAxUTUxMC44IC0xNi44IDUxMC4xIC0yNC40UTUwOS40MDAwMDAwMDAwMDAwMyAtMzIuMCA1MTIuMCAtNDAuNDAwMDAwMDAwMDAwMDA2TDUzOS4wIC00Mi44MDAwMDAwMDAwMDAwMDRRNTM4LjQwMDAwMDAwMDAwMDEgLTM2LjgwMDAwMDAwMDAwMDAwNCA1MzguNjAwMDAwMDAwMDAwMSAtMzEuMVE1MzguODAwMDAwMDAwMDAwMSAtMjUuNDAwMDAwMDAwMDAwMDAyIDU0MC43IC0yMS44UTU0Mi42IC0xOC4yIDU0Ni44MDAwMDAwMDAwMDAxIC0xOC4yUTU0OS42IC0xOC4yIDU1MS4xIC0yMC4yMDAwMDAwMDAwMDAwMDNRNTUyLjYgLTIyLjIwMDAwMDAwMDAwMDAwMyA1NTIuNiAtMjYuNlE1NTIuNiAtMzIuNCA1NTAuMCAtMzYuMlE1NDcuNDAwMDAwMDAwMDAwMSAtNDAuMCA1NDMuMTAwMDAwMDAwMDAwMSAtNDIuOFE1MzguODAwMDAwMDAwMDAwMSAtNDUuNiA1MzMuNiAtNDguMlE1MjkuNiAtNTAuNDAwMDAwMDAwMDAwMDA2IDUyNS40MDAwMDAwMDAwMDAxIC01Mi45MDAwMDAwMDAwMDAwMDZRNTIxLjIgLTU1LjQwMDAwMDAwMDAwMDAwNiA1MTcuNyAtNTguOTAwMDAwMDAwMDAwMDA2UTUxNC4yIC02Mi40MDAwMDAwMDAwMDAwMDYgNTEyLjAgLTY3LjMwMDAwMDAwMDAwMDAxUTUwOS44IC03Mi4yIDUwOS44IC03OS4wUTUwOS44IC04OC4wIDUxMy45IC05NC41UTUxOC4wIC0xMDEuMCA1MjUuOTAwMDAwMDAwMDAwMSAtMTA0LjVRNTMzLjgwMDAwMDAwMDAwMDEgLTEwOC4wIDU0NS40MDAwMDAwMDAwMDAxIC0xMDguMFE1NTYuNiAtMTA4LjAgNTY0LjkwMDAwMDAwMDAwMDEgLTEwNC4yUTU3My4yIC0xMDAuNCA1NzcuNDAwMDAwMDAwMDAwMSAtOTIuMTAwMDAwMDAwMDAwMDFRNTgxLjYgLTgzLjgwMDAwMDAwMDAwMDAxIDU4MC4yIC03MC4wTDU1My44MDAwMDAwMDAwMDAxIC02Ni40UTU1NC40MDAwMDAwMDAwMDAxIC03Mi4yIDU1My42MDAwMDAwMDAwMDAxIC03Ni43UTU1Mi44MDAwMDAwMDAwMDAxIC04MS4yIDU1MC44MDAwMDAwMDAwMDAxIC04My44MDAwMDAwMDAwMDAwMVE1NDguODAwMDAwMDAwMDAwMSAtODYuNCA1NDUuNDAwMDAwMDAwMDAwMSAtODYuNFE1NDIuNDAwMDAwMDAwMDAwMSAtODYuNCA1NDAuOTAwMDAwMDAwMDAwMSAtODQuMzAwMDAwMDAwMDAwMDFRNTM5LjQwMDAwMDAwMDAwMDEgLTgyLjIgNTM5LjQwMDAwMDAwMDAwMDEgLTc5LjBRNTM5LjQwMDAwMDAwMDAwMDEgLTc1LjQgNTQxLjQwMDAwMDAwMDAwMDEgLTcyLjgwMDAwMDAwMDAwMDAxUTU0My40MDAwMDAwMDAwMDAxIC03MC4yIDU0Ni44MDAwMDAwMDAwMDAxIC02OC4yUTU1MC4yIC02Ni4yIDU1NC40MDAwMDAwMDAwMDAxIC02NC4wUTU1OS40MDAwMDAwMDAwMDAxIC02MS40MDAwMDAwMDAwMDAwMDYgNTY0LjUgLTU4LjJRNTY5LjYgLTU1LjAgNTczLjggLTUwLjdRNTc4LjAgLTQ2LjQwMDAwMDAwMDAwMDAwNiA1ODAuNSAtNDAuN1E1ODMuMCAtMzUuMCA1ODMuMCAtMjcuNDAwMDAwMDAwMDAwMDAyUTU4My4wIC0xOS4yMDAwMDAwMDAwMDAwMDMgNTc5LjMgLTEyLjQwMDAwMDAwMDAwMDAwMlE1NzUuNiAtNS42MDAwMDAwMDAwMDAwMDA1IDU2Ny43IC0xLjZRNTU5LjgwMDAwMDAwMDAwMDEgMi40MDAwMDAwMDAwMDAwMDA0IDU0Ni44MDAwMDAwMDAwMDAxIDIuNDAwMDAwMDAwMDAwMDAwNFoiLz48cmVjdCBmaWxsPSIjZGNmMDRhIiB4PSI1OTEuNzMiIHk9Ii0xNTcuMTQiIHdpZHRoPSI1Mi45OCIgaGVpZ2h0PSI2OS40NiIvPjxwYXRoIGZpbGw9IiMyNzI4MTgiIGQ9Ik02MDEuODAwMDAwMDAwMDAwMSAtOTcuNjc5OTk5OTk5OTk5OTlWLTEwNS43NDRINjEzLjYwODAwMDAwMDAwMDFWLTEzNC45MDRINjAxLjcyODAwMDAwMDAwMDFWLTE0MC45NTJRNjA0LjEwNCAtMTQxLjE2OCA2MDcuMjM2MDAwMDAwMDAwMSAtMTQyLjA2Nzk5OTk5OTk5OTk4UTYxMC4zNjggLTE0Mi45NjggNjEzLjUzNjAwMDAwMDAwMDEgLTE0NC4zUTYxNi43MDQwMDAwMDAwMDAxIC0xNDUuNjMyIDYxOS4yMjQgLTE0Ny4xNDRINjIzLjY4OFYtMTA1Ljc0NEg2MzQuNzA0MDAwMDAwMDAwMVYtOTcuNjc5OTk5OTk5OTk5OTlaIi8+PC9nPjwvc3ZnPgo=', paper: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NzQgMjg4IiB3aWR0aD0iNzc0IiBoZWlnaHQ9IjI4OCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJiZW4uai5hZHMiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU0Ljg1IDIwNy4xNCkgc2tld1goLTkpIj48cGF0aCBmaWxsPSIjZWVmMGU0IiBkPSJNNTIuNiAyLjQwMDAwMDAwMDAwMDAwMDRRNDYuODAwMDAwMDAwMDAwMDA0IDIuNDAwMDAwMDAwMDAwMDAwNCA0Mi40MDAwMDAwMDAwMDAwMDYgLTAuODk5OTk5OTk5OTk5OTk5OVEzOC4wIC00LjIgMzUuNDAwMDAwMDAwMDAwMDA2IC0xMS40UTMyLjgwMDAwMDAwMDAwMDAwNCAtMTguNiAzMS44IC0zMC4yMDAwMDAwMDAwMDAwMDNIMzAuMjAwMDAwMDAwMDAwMDAzVjAuMEgzLjgwMDAwMDAwMDAwMDAwMDNWLTQ5LjgwMDAwMDAwMDAwMDAwNFYtMTM2LjBIMzQuNlYtMTE2LjJRMzQuNiAtMTA4LjIgMzQuMSAtMTAwLjdRMzMuNiAtOTMuMiAzMi43IC04Ni4xUTMxLjggLTc5LjAgMzAuNDAwMDAwMDAwMDAwMDAyIC03Mi4ySDMyLjRRMzMuODAwMDAwMDAwMDAwMDA0IC04NC4yIDM2LjcgLTkyLjBRMzkuNiAtOTkuODAwMDAwMDAwMDAwMDEgNDQuMSAtMTAzLjcwMDAwMDAwMDAwMDAyUTQ4LjYgLTEwNy42MDAwMDAwMDAwMDAwMSA1NC42IC0xMDcuNjAwMDAwMDAwMDAwMDFRNjIuODAwMDAwMDAwMDAwMDA0IC0xMDcuNjAwMDAwMDAwMDAwMDEgNjguNjAwMDAwMDAwMDAwMDEgLTEwMC43MDAwMDAwMDAwMDAwMlE3NC40IC05My44MDAwMDAwMDAwMDAwMSA3Ny40IC04MS40UTgwLjQgLTY5LjAgODAuNCAtNTIuMFE4MC40IC0zMi42IDc2LjcgLTIwLjZRNzMuMCAtOC42IDY2LjcgLTMuMDk5OTk5OTk5OTk5OTk5NlE2MC40MDAwMDAwMDAwMDAwMDYgMi40MDAwMDAwMDAwMDAwMDA0IDUyLjYgMi40MDAwMDAwMDAwMDAwMDA0Wk00Mi44MDAwMDAwMDAwMDAwMDQgLTIwLjhRNDUuMiAtMjAuOCA0Ni41IC0yNC4zUTQ3LjgwMDAwMDAwMDAwMDAwNCAtMjcuOCA0OC40MDAwMDAwMDAwMDAwMDYgLTM0LjVRNDkuMCAtNDEuMiA0OS4wIC01MC42UTQ5LjAgLTYxLjQwMDAwMDAwMDAwMDAwNiA0OC40MDAwMDAwMDAwMDAwMDYgLTY4LjFRNDcuODAwMDAwMDAwMDAwMDA0IC03NC44IDQ2LjQwMDAwMDAwMDAwMDAwNiAtNzcuOVE0NS4wIC04MS4wIDQyLjgwMDAwMDAwMDAwMDAwNCAtODEuMFE0MS4yIC04MS4wIDM5LjkwMDAwMDAwMDAwMDAwNiAtNzkuNlEzOC42IC03OC4yIDM3LjYgLTc1LjVRMzYuNiAtNzIuOCAzNi4wIC02OS4wUTM1LjQgLTY1LjIgMzUuMCAtNjAuNlEzNC42IC01Ni4wIDM0LjYgLTUwLjgwMDAwMDAwMDAwMDAwNFYtNDYuNlEzNC42IC00MS44MDAwMDAwMDAwMDAwMDQgMzUuMSAtMzcuMlEzNS42IC0zMi42IDM2LjcgLTI4LjkwMDAwMDAwMDAwMDAwMlEzNy44MDAwMDAwMDAwMDAwMDQgLTI1LjIwMDAwMDAwMDAwMDAwMyAzOS4zMDAwMDAwMDAwMDAwMDQgLTIzLjBRNDAuODAwMDAwMDAwMDAwMDA0IC0yMC44IDQyLjgwMDAwMDAwMDAwMDAwNCAtMjAuOFpNMTIxLjIgMi40MDAwMDAwMDAwMDAwMDA0UTEwOS42MDAwMDAwMDAwMDAwMSAyLjQwMDAwMDAwMDAwMDAwMDQgMTAyLjAgLTEuNFE5NC40IC01LjIgOTAuMCAtMTIuMjAwMDAwMDAwMDAwMDAxUTg1LjYwMDAwMDAwMDAwMDAxIC0xOS4yMDAwMDAwMDAwMDAwMDMgODMuODAwMDAwMDAwMDAwMDEgLTI5LjAwMDAwMDAwMDAwMDAwNFE4Mi4wIC0zOC44MDAwMDAwMDAwMDAwMDQgODIuMCAtNTAuNlE4Mi4wIC02MS44MDAwMDAwMDAwMDAwMDQgODMuNyAtNzIuMFE4NS40IC04Mi4yIDg5LjYwMDAwMDAwMDAwMDAxIC05MC40UTkzLjgwMDAwMDAwMDAwMDAxIC05OC42MDAwMDAwMDAwMDAwMSAxMDEuMjAwMDAwMDAwMDAwMDIgLTEwMy4zMDAwMDAwMDAwMDAwMVExMDguNjAwMDAwMDAwMDAwMDEgLTEwOC4wIDEyMC4yIC0xMDguMFExMzAuOCAtMTA4LjAgMTM4LjAgLTEwNC4wUTE0NS4yIC0xMDAuMCAxNDkuMyAtOTIuNFExNTMuNCAtODQuODAwMDAwMDAwMDAwMDEgMTU0LjYwMDAwMDAwMDAwMDAyIC03NC4xMDAwMDAwMDAwMDAwMVExNTUuOCAtNjMuNDAwMDAwMDAwMDAwMDA2IDE1NC4wIC01MC4yTDEwMi40IC00OC4yVi02Mi42TDEyOC4wIC02My42TDEyNS4yIC01My42UTEyNi4yIC02NC40IDEyNi4wIC03MS4xMDAwMDAwMDAwMDAwMVExMjUuODAwMDAwMDAwMDAwMDEgLTc3LjgwMDAwMDAwMDAwMDAxIDEyNC40IC04MC45UTEyMy4wIC04NC4wIDEyMC4yIC04NC4wUTExNy4yIC04NC4wIDExNS42IC04MC41UTExNC4wIC03Ny4wIDExMy40IC03MC41UTExMi44MDAwMDAwMDAwMDAwMSAtNjQuMCAxMTIuODAwMDAwMDAwMDAwMDEgLTU0LjgwMDAwMDAwMDAwMDAwNFExMTIuODAwMDAwMDAwMDAwMDEgLTM2LjAgMTE0LjgwMDAwMDAwMDAwMDAxIC0yOC4yMDAwMDAwMDAwMDAwMDNRMTE2LjgwMDAwMDAwMDAwMDAxIC0yMC40MDAwMDAwMDAwMDAwMDIgMTIxLjIgLTIwLjQwMDAwMDAwMDAwMDAwMlExMjMuNjAwMDAwMDAwMDAwMDEgLTIwLjQwMDAwMDAwMDAwMDAwMiAxMjQuOSAtMjIuMzAwMDAwMDAwMDAwMDA0UTEyNi4yIC0yNC4yMDAwMDAwMDAwMDAwMDMgMTI2LjcgLTI3LjMwMDAwMDAwMDAwMDAwNFExMjcuMiAtMzAuNDAwMDAwMDAwMDAwMDAyIDEyNy4yIC0zNC4zMDAwMDAwMDAwMDAwMDRRMTI3LjIgLTM4LjIgMTI2LjgwMDAwMDAwMDAwMDAxIC00Mi4yTDE1NS4wIC0zOS42UTE1Ni40IC0zMi42IDE1NS43IC0yNS4yMDAwMDAwMDAwMDAwMDNRMTU1LjAgLTE3LjggMTUxLjQgLTExLjVRMTQ3LjggLTUuMiAxNDAuNSAtMS40UTEzMy4yIDIuNDAwMDAwMDAwMDAwMDAwNCAxMjEuMiAyLjQwMDAwMDAwMDAwMDAwMDRaTTE1OC40MDAwMDAwMDAwMDAwMyAwLjBWLTY0LjYwMDAwMDAwMDAwMDAxVi0xMDUuNjAwMDAwMDAwMDAwMDFIMTg0LjhWLTY4LjYwMDAwMDAwMDAwMDAxSDE4Ni40MDAwMDAwMDAwMDAwM1ExODYuNDAwMDAwMDAwMDAwMDMgLTgzLjIgMTg5LjIwMDAwMDAwMDAwMDA1IC05MS44MDAwMDAwMDAwMDAwMVExOTIuMDAwMDAwMDAwMDAwMDMgLTEwMC40IDE5Ny4yMDAwMDAwMDAwMDAwNSAtMTA0LjJRMjAyLjQwMDAwMDAwMDAwMDAzIC0xMDguMCAyMDkuNjAwMDAwMDAwMDAwMDIgLTEwOC4wUTIyMi4wMDAwMDAwMDAwMDAwMyAtMTA4LjAgMjI3LjYwMDAwMDAwMDAwMDAyIC05Ny45UTIzMy4yMDAwMDAwMDAwMDAwNSAtODcuODAwMDAwMDAwMDAwMDEgMjMzLjIwMDAwMDAwMDAwMDA1IC02Ni4wVjAuMEgyMDIuMjAwMDAwMDAwMDAwMDJWLTU3LjZRMjAyLjIwMDAwMDAwMDAwMDAyIC02OC44IDIwMS4xMDAwMDAwMDAwMDAwMiAtNzMuODAwMDAwMDAwMDAwMDFRMjAwLjAwMDAwMDAwMDAwMDAzIC03OC44MDAwMDAwMDAwMDAwMSAxOTYuNDAwMDAwMDAwMDAwMDMgLTc4LjgwMDAwMDAwMDAwMDAxUTE5Mi44IC03OC44MDAwMDAwMDAwMDAwMSAxOTEuMyAtNzQuNjAwMDAwMDAwMDAwMDFRMTg5LjggLTcwLjQgMTg5LjUgLTYzLjYwMDAwMDAwMDAwMDAxUTE4OS4yMDAwMDAwMDAwMDAwMiAtNTYuODAwMDAwMDAwMDAwMDA0IDE4OS4yMDAwMDAwMDAwMDAwMiAtNDguODAwMDAwMDAwMDAwMDA0VjAuMFoiLz48cmVjdCBmaWxsPSIjZGNmMDRhIiB4PSIyMzcuMzAiIHk9Ii0zMy4wMCIgd2lkdGg9IjMzLjAwIiBoZWlnaHQ9IjMzLjAwIi8+PHJlY3QgZmlsbD0iI2RjZjA0YSIgeD0iMzE4LjcwIiB5PSItMzMuMDAiIHdpZHRoPSIzMy4wMCIgaGVpZ2h0PSIzMy4wMCIvPjxwYXRoIGZpbGw9IiNlZWYwZTQiIGQ9Ik0yODEuMiAzMC42UTI3OC40MDAwMDAwMDAwMDAwMyAzMC42IDI3NS45MDAwMDAwMDAwMDAwMyAzMC41UTI3My40MDAwMDAwMDAwMDAwMyAzMC40MDAwMDAwMDAwMDAwMDIgMjcwLjYgMjkuOEwyNjguMCA0LjJRMjcyLjIgNC44MDAwMDAwMDAwMDAwMDEgMjc1LjEgMi40MDAwMDAwMDAwMDAwMDA0UTI3OC4wIDAuMCAyNzguMCAtNi44MDAwMDAwMDAwMDAwMDFWLTEwNS42MDAwMDAwMDAwMDAwMUgzMTAuNDAwMDAwMDAwMDAwMDNWLTYuNFEzMTAuNDAwMDAwMDAwMDAwMDMgMy4yIDMwOC4xIDEwLjFRMzA1LjggMTcuMCAzMDEuOCAyMS42UTI5Ny44IDI2LjIwMDAwMDAwMDAwMDAwMyAyOTIuNSAyOC40MDAwMDAwMDAwMDAwMDJRMjg3LjIgMzAuNiAyODEuMiAzMC42Wk0yOTQuMiAtMTEyLjgwMDAwMDAwMDAwMDAxUTI4NS42IC0xMTIuODAwMDAwMDAwMDAwMDEgMjgwLjggLTExNi40UTI3Ni4wIC0xMjAuMDAwMDAwMDAwMDAwMDEgMjc2LjAgLTEyNi44MDAwMDAwMDAwMDAwMVEyNzYuMCAtMTMzLjYgMjgwLjggLTEzNy4zUTI4NS42IC0xNDEuMCAyOTQuMiAtMTQxLjBRMzAzLjAgLTE0MS4wIDMwNy43IC0xMzcuM1EzMTIuNCAtMTMzLjYgMzEyLjQgLTEyNi44MDAwMDAwMDAwMDAwMVEzMTIuNCAtMTIwLjAwMDAwMDAwMDAwMDAxIDMwNy43IC0xMTYuNFEzMDMuMCAtMTEyLjgwMDAwMDAwMDAwMDAxIDI5NC4yIC0xMTIuODAwMDAwMDAwMDAwMDFaTTM3NS44MDAwMDAwMDAwMDAwNyAyLjQwMDAwMDAwMDAwMDAwMDRRMzY5LjQwMDAwMDAwMDAwMDAzIDIuNDAwMDAwMDAwMDAwMDAwNCAzNjQuNSAtMC41OTk5OTk5OTk5OTk5OTk5UTM1OS42IC0zLjYgMzU2LjgwMDAwMDAwMDAwMDA3IC05LjIwMDAwMDAwMDAwMDAwMVEzNTQuMDAwMDAwMDAwMDAwMDYgLTE0LjggMzU0LjAwMDAwMDAwMDAwMDA2IC0yMi42UTM1NC4wMDAwMDAwMDAwMDAwNiAtMzEuNiAzNTcuMjAwMDAwMDAwMDAwMDUgLTM3LjZRMzYwLjQwMDAwMDAwMDAwMDAzIC00My42IDM2NS40MDAwMDAwMDAwMDAwMyAtNDcuNVEzNzAuNDAwMDAwMDAwMDAwMDMgLTUxLjQwMDAwMDAwMDAwMDAwNiAzNzUuOTAwMDAwMDAwMDAwMDMgLTUzLjdRMzgxLjQwMDAwMDAwMDAwMDAzIC01Ni4wIDM4NS44MDAwMDAwMDAwMDAwNyAtNTcuNlEzOTAuODAwMDAwMDAwMDAwMDcgLTU5LjQwMDAwMDAwMDAwMDAwNiAzOTMuNTAwMDAwMDAwMDAwMDYgLTYxLjQwMDAwMDAwMDAwMDAwNlEzOTYuMjAwMDAwMDAwMDAwMDUgLTYzLjQwMDAwMDAwMDAwMDAwNiAzOTcuMjAwMDAwMDAwMDAwMDUgLTY2LjFRMzk4LjIwMDAwMDAwMDAwMDA1IC02OC44IDM5OC4yMDAwMDAwMDAwMDAwNSAtNzIuOFEzOTguMjAwMDAwMDAwMDAwMDUgLTc4LjQgMzk2LjYgLTgxLjJRMzk1LjAwMDAwMDAwMDAwMDA2IC04NC4wIDM5Mi4wMDAwMDAwMDAwMDAwNiAtODQuMFEzODkuMjAwMDAwMDAwMDAwMDUgLTg0LjAgMzg3LjYgLTgxLjVRMzg2LjAwMDAwMDAwMDAwMDA2IC03OS4wIDM4NS42IC03My45UTM4NS4yMDAwMDAwMDAwMDAwNSAtNjguOCAzODYuMDAwMDAwMDAwMDAwMDYgLTYxLjBMMzU2LjAwMDAwMDAwMDAwMDA2IC02NC4yUTM1NS40MDAwMDAwMDAwMDAwMyAtNzQuOCAzNTcuNiAtODMuMFEzNTkuODAwMDAwMDAwMDAwMDcgLTkxLjIgMzY0LjUwMDAwMDAwMDAwMDA2IC05Ni44MDAwMDAwMDAwMDAwMVEzNjkuMjAwMDAwMDAwMDAwMDUgLTEwMi40IDM3Ni40MDAwMDAwMDAwMDAwMyAtMTA1LjJRMzgzLjYgLTEwOC4wIDM5My4yMDAwMDAwMDAwMDAwNSAtMTA4LjBRNDA0LjgwMDAwMDAwMDAwMDA3IC0xMDguMCA0MTIuNzAwMDAwMDAwMDAwMDUgLTEwMy4zMDAwMDAwMDAwMDAwMVE0MjAuNiAtOTguNjAwMDAwMDAwMDAwMDEgNDI0LjYgLTg4LjlRNDI4LjYgLTc5LjIgNDI4LjYgLTYzLjgwMDAwMDAwMDAwMDAwNFYtMzguNDAwMDAwMDAwMDAwMDA2UTQyOC42IC0zMi4wIDQyOC42IC0yNS42UTQyOC42IC0xOS4yMDAwMDAwMDAwMDAwMDMgNDI4LjYgLTEyLjhRNDI4LjYgLTYuNCA0MjguNiAwLjBINDAxLjgwMDAwMDAwMDAwMDA3UTQwMS44MDAwMDAwMDAwMDAwNyAtNi44MDAwMDAwMDAwMDAwMDEgNDAxLjgwMDAwMDAwMDAwMDA3IC0xMy41MDAwMDAwMDAwMDAwMDJRNDAxLjgwMDAwMDAwMDAwMDA3IC0yMC4yMDAwMDAwMDAwMDAwMDMgNDAxLjgwMDAwMDAwMDAwMDA3IC0yNy4wSDQwMC4yMDAwMDAwMDAwMDAwNVEzOTkuNDAwMDAwMDAwMDAwMDMgLTE3LjQwMDAwMDAwMDAwMDAwMiAzOTYuMjAwMDAwMDAwMDAwMDUgLTEwLjhRMzkzLjAwMDAwMDAwMDAwMDA2IC00LjIgMzg3LjgwMDAwMDAwMDAwMDA3IC0wLjg5OTk5OTk5OTk5OTk5OTlRMzgyLjYgMi40MDAwMDAwMDAwMDAwMDA0IDM3NS44MDAwMDAwMDAwMDAwNyAyLjQwMDAwMDAwMDAwMDAwMDRaTTM4OS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyUTM5MS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyIDM5My4zMDAwMDAwMDAwMDAwNyAtMjMuNlEzOTQuODAwMDAwMDAwMDAwMDcgLTI0LjggMzk1LjgwMDAwMDAwMDAwMDA3IC0yNy4wUTM5Ni44MDAwMDAwMDAwMDAwNyAtMjkuMjAwMDAwMDAwMDAwMDAzIDM5Ny4zMDAwMDAwMDAwMDAwNyAtMzEuOFEzOTcuODAwMDAwMDAwMDAwMDcgLTM0LjQgMzk3LjgwMDAwMDAwMDAwMDA3IC0zNy4wVi01MS4yTDQwMi4wMDAwMDAwMDAwMDAwNiAtNTQuNDAwMDAwMDAwMDAwMDA2UTQwMC40MDAwMDAwMDAwMDAwMyAtNTIuMCAzOTguNDAwMDAwMDAwMDAwMDMgLTUwLjNRMzk2LjQwMDAwMDAwMDAwMDAzIC00OC42IDM5NC4zMDAwMDAwMDAwMDAwNyAtNDcuM1EzOTIuMjAwMDAwMDAwMDAwMDUgLTQ2LjAgMzkwLjMwMDAwMDAwMDAwMDA3IC00NC42UTM4OC40MDAwMDAwMDAwMDAwMyAtNDMuMiAzODcuMCAtNDEuNlEzODUuNiAtNDAuMCAzODQuNzAwMDAwMDAwMDAwMDUgLTM3LjZRMzgzLjgwMDAwMDAwMDAwMDA3IC0zNS4yIDM4My44MDAwMDAwMDAwMDAwNyAtMzEuOFEzODMuODAwMDAwMDAwMDAwMDcgLTI2LjQwMDAwMDAwMDAwMDAwMiAzODUuNzAwMDAwMDAwMDAwMDUgLTI0LjQwMDAwMDAwMDAwMDAwMlEzODcuNiAtMjIuNDAwMDAwMDAwMDAwMDAyIDM4OS44MDAwMDAwMDAwMDAwNyAtMjIuNDAwMDAwMDAwMDAwMDAyWk00NTkuMjAwMDAwMDAwMDAwMDUgMi40MDAwMDAwMDAwMDAwMDA0UTQ1MC4wMDAwMDAwMDAwMDAwNiAyLjQwMDAwMDAwMDAwMDAwMDQgNDQzLjcwMDAwMDAwMDAwMDA1IC00LjJRNDM3LjQwMDAwMDAwMDAwMDAzIC0xMC44IDQzNC4yMDAwMDAwMDAwMDAwNSAtMjMuMjAwMDAwMDAwMDAwMDAzUTQzMS4wMDAwMDAwMDAwMDAwNiAtMzUuNiA0MzEuMDAwMDAwMDAwMDAwMDYgLTUyLjZRNDMxLjAwMDAwMDAwMDAwMDA2IC03MS42MDAwMDAwMDAwMDAwMSA0MzQuNiAtODMuODAwMDAwMDAwMDAwMDFRNDM4LjIwMDAwMDAwMDAwMDA1IC05Ni4wIDQ0NC4xIC0xMDEuODAwMDAwMDAwMDAwMDFRNDUwLjAwMDAwMDAwMDAwMDA2IC0xMDcuNjAwMDAwMDAwMDAwMDEgNDU3LjIwMDAwMDAwMDAwMDA1IC0xMDcuNjAwMDAwMDAwMDAwMDFRNDYzLjYgLTEwNy42MDAwMDAwMDAwMDAwMSA0NjcuOTAwMDAwMDAwMDAwMDMgLTEwMy40UTQ3Mi4yMDAwMDAwMDAwMDAwNSAtOTkuMiA0NzQuOTAwMDAwMDAwMDAwMDMgLTkxLjMwMDAwMDAwMDAwMDAxUTQ3Ny42IC04My40IDQ3OS4wMDAwMDAwMDAwMDAwNiAtNzIuMkg0ODEuMDAwMDAwMDAwMDAwMDZRNDc5LjgwMDAwMDAwMDAwMDA3IC03OS4wIDQ3OC45MDAwMDAwMDAwMDAxIC04NS40UTQ3OC4wMDAwMDAwMDAwMDAwNiAtOTEuODAwMDAwMDAwMDAwMDEgNDc3LjQwMDAwMDAwMDAwMDEgLTk3LjVRNDc2LjgwMDAwMDAwMDAwMDA3IC0xMDMuMiA0NzYuODAwMDAwMDAwMDAwMDcgLTEwOC4wVi0xMzYuMEg1MDcuNlYtNDkuNlYwLjBINDgxLjIwMDAwMDAwMDAwMDA1Vi0zMC4yMDAwMDAwMDAwMDAwMDNINDc5LjZRNDc4LjYgLTE3LjggNDc1LjkwMDAwMDAwMDAwMDAzIC0xMC42MDAwMDAwMDAwMDAwMDFRNDczLjIwMDAwMDAwMDAwMDA1IC0zLjQwMDAwMDAwMDAwMDAwMDQgNDY5LjAwMDAwMDAwMDAwMDA2IC0wLjVRNDY0LjgwMDAwMDAwMDAwMDA3IDIuNDAwMDAwMDAwMDAwMDAwNCA0NTkuMjAwMDAwMDAwMDAwMDUgMi40MDAwMDAwMDAwMDAwMDA0Wk00NjguODAwMDAwMDAwMDAwMDcgLTIwLjhRNDcwLjgwMDAwMDAwMDAwMDA3IC0yMC44IDQ3Mi4zMDAwMDAwMDAwMDAwNyAtMjMuMFE0NzMuODAwMDAwMDAwMDAwMDcgLTI1LjIwMDAwMDAwMDAwMDAwMyA0NzQuODAwMDAwMDAwMDAwMDcgLTI4LjkwMDAwMDAwMDAwMDAwMlE0NzUuODAwMDAwMDAwMDAwMDcgLTMyLjYgNDc2LjMwMDAwMDAwMDAwMDA3IC0zNy4yUTQ3Ni44MDAwMDAwMDAwMDAwNyAtNDEuODAwMDAwMDAwMDAwMDA0IDQ3Ni44MDAwMDAwMDAwMDAwNyAtNDYuNlYtNTAuODAwMDAwMDAwMDAwMDA0UTQ3Ni44MDAwMDAwMDAwMDAwNyAtNTYuMCA0NzYuNDAwMDAwMDAwMDAwMSAtNjAuNlE0NzYuMDAwMDAwMDAwMDAwMDYgLTY1LjIgNDc1LjMwMDAwMDAwMDAwMDA3IC02OS4wUTQ3NC42IC03Mi44IDQ3My42IC03NS41UTQ3Mi42IC03OC4yIDQ3MS40MDAwMDAwMDAwMDAwMyAtNzkuNlE0NzAuMjAwMDAwMDAwMDAwMDUgLTgxLjAgNDY4LjYgLTgxLjBRNDY2LjYgLTgxLjAgNDY1LjIwMDAwMDAwMDAwMDA1IC03Ny45UTQ2My44MDAwMDAwMDAwMDAwNyAtNzQuOCA0NjMuMSAtNjguMVE0NjIuNDAwMDAwMDAwMDAwMDMgLTYxLjQwMDAwMDAwMDAwMDAwNiA0NjIuNDAwMDAwMDAwMDAwMDMgLTUwLjgwMDAwMDAwMDAwMDAwNFE0NjIuNDAwMDAwMDAwMDAwMDMgLTQxLjQwMDAwMDAwMDAwMDAwNiA0NjMuMCAtMzQuNlE0NjMuNiAtMjcuOCA0NjUuMCAtMjQuM1E0NjYuNDAwMDAwMDAwMDAwMDMgLTIwLjggNDY4LjgwMDAwMDAwMDAwMDA3IC0yMC44Wk01NDYuODAwMDAwMDAwMDAwMSAyLjQwMDAwMDAwMDAwMDAwMDRRNTM0LjgwMDAwMDAwMDAwMDEgMi40MDAwMDAwMDAwMDAwMDA0IDUyNi45MDAwMDAwMDAwMDAxIC0xLjFRNTE5LjAgLTQuNjAwMDAwMDAwMDAwMDAwNSA1MTQuOSAtMTAuNzAwMDAwMDAwMDAwMDAxUTUxMC44IC0xNi44IDUxMC4xIC0yNC40UTUwOS40MDAwMDAwMDAwMDAwMyAtMzIuMCA1MTIuMCAtNDAuNDAwMDAwMDAwMDAwMDA2TDUzOS4wIC00Mi44MDAwMDAwMDAwMDAwMDRRNTM4LjQwMDAwMDAwMDAwMDEgLTM2LjgwMDAwMDAwMDAwMDAwNCA1MzguNjAwMDAwMDAwMDAwMSAtMzEuMVE1MzguODAwMDAwMDAwMDAwMSAtMjUuNDAwMDAwMDAwMDAwMDAyIDU0MC43IC0yMS44UTU0Mi42IC0xOC4yIDU0Ni44MDAwMDAwMDAwMDAxIC0xOC4yUTU0OS42IC0xOC4yIDU1MS4xIC0yMC4yMDAwMDAwMDAwMDAwMDNRNTUyLjYgLTIyLjIwMDAwMDAwMDAwMDAwMyA1NTIuNiAtMjYuNlE1NTIuNiAtMzIuNCA1NTAuMCAtMzYuMlE1NDcuNDAwMDAwMDAwMDAwMSAtNDAuMCA1NDMuMTAwMDAwMDAwMDAwMSAtNDIuOFE1MzguODAwMDAwMDAwMDAwMSAtNDUuNiA1MzMuNiAtNDguMlE1MjkuNiAtNTAuNDAwMDAwMDAwMDAwMDA2IDUyNS40MDAwMDAwMDAwMDAxIC01Mi45MDAwMDAwMDAwMDAwMDZRNTIxLjIgLTU1LjQwMDAwMDAwMDAwMDAwNiA1MTcuNyAtNTguOTAwMDAwMDAwMDAwMDA2UTUxNC4yIC02Mi40MDAwMDAwMDAwMDAwMDYgNTEyLjAgLTY3LjMwMDAwMDAwMDAwMDAxUTUwOS44IC03Mi4yIDUwOS44IC03OS4wUTUwOS44IC04OC4wIDUxMy45IC05NC41UTUxOC4wIC0xMDEuMCA1MjUuOTAwMDAwMDAwMDAwMSAtMTA0LjVRNTMzLjgwMDAwMDAwMDAwMDEgLTEwOC4wIDU0NS40MDAwMDAwMDAwMDAxIC0xMDguMFE1NTYuNiAtMTA4LjAgNTY0LjkwMDAwMDAwMDAwMDEgLTEwNC4yUTU3My4yIC0xMDAuNCA1NzcuNDAwMDAwMDAwMDAwMSAtOTIuMTAwMDAwMDAwMDAwMDFRNTgxLjYgLTgzLjgwMDAwMDAwMDAwMDAxIDU4MC4yIC03MC4wTDU1My44MDAwMDAwMDAwMDAxIC02Ni40UTU1NC40MDAwMDAwMDAwMDAxIC03Mi4yIDU1My42MDAwMDAwMDAwMDAxIC03Ni43UTU1Mi44MDAwMDAwMDAwMDAxIC04MS4yIDU1MC44MDAwMDAwMDAwMDAxIC04My44MDAwMDAwMDAwMDAwMVE1NDguODAwMDAwMDAwMDAwMSAtODYuNCA1NDUuNDAwMDAwMDAwMDAwMSAtODYuNFE1NDIuNDAwMDAwMDAwMDAwMSAtODYuNCA1NDAuOTAwMDAwMDAwMDAwMSAtODQuMzAwMDAwMDAwMDAwMDFRNTM5LjQwMDAwMDAwMDAwMDEgLTgyLjIgNTM5LjQwMDAwMDAwMDAwMDEgLTc5LjBRNTM5LjQwMDAwMDAwMDAwMDEgLTc1LjQgNTQxLjQwMDAwMDAwMDAwMDEgLTcyLjgwMDAwMDAwMDAwMDAxUTU0My40MDAwMDAwMDAwMDAxIC03MC4yIDU0Ni44MDAwMDAwMDAwMDAxIC02OC4yUTU1MC4yIC02Ni4yIDU1NC40MDAwMDAwMDAwMDAxIC02NC4wUTU1OS40MDAwMDAwMDAwMDAxIC02MS40MDAwMDAwMDAwMDAwMDYgNTY0LjUgLTU4LjJRNTY5LjYgLTU1LjAgNTczLjggLTUwLjdRNTc4LjAgLTQ2LjQwMDAwMDAwMDAwMDAwNiA1ODAuNSAtNDAuN1E1ODMuMCAtMzUuMCA1ODMuMCAtMjcuNDAwMDAwMDAwMDAwMDAyUTU4My4wIC0xOS4yMDAwMDAwMDAwMDAwMDMgNTc5LjMgLTEyLjQwMDAwMDAwMDAwMDAwMlE1NzUuNiAtNS42MDAwMDAwMDAwMDAwMDA1IDU2Ny43IC0xLjZRNTU5LjgwMDAwMDAwMDAwMDEgMi40MDAwMDAwMDAwMDAwMDA0IDU0Ni44MDAwMDAwMDAwMDAxIDIuNDAwMDAwMDAwMDAwMDAwNFoiLz48cmVjdCBmaWxsPSIjZGNmMDRhIiB4PSI1OTEuNzMiIHk9Ii0xNTcuMTQiIHdpZHRoPSI1Mi45OCIgaGVpZ2h0PSI2OS40NiIvPjxwYXRoIGZpbGw9IiMyNzI4MTgiIGQ9Ik02MDEuODAwMDAwMDAwMDAwMSAtOTcuNjc5OTk5OTk5OTk5OTlWLTEwNS43NDRINjEzLjYwODAwMDAwMDAwMDFWLTEzNC45MDRINjAxLjcyODAwMDAwMDAwMDFWLTE0MC45NTJRNjA0LjEwNCAtMTQxLjE2OCA2MDcuMjM2MDAwMDAwMDAwMSAtMTQyLjA2Nzk5OTk5OTk5OTk4UTYxMC4zNjggLTE0Mi45NjggNjEzLjUzNjAwMDAwMDAwMDEgLTE0NC4zUTYxNi43MDQwMDAwMDAwMDAxIC0xNDUuNjMyIDYxOS4yMjQgLTE0Ny4xNDRINjIzLjY4OFYtMTA1Ljc0NEg2MzQuNzA0MDAwMDAwMDAwMVYtOTcuNjc5OTk5OTk5OTk5OTlaIi8+PC9nPjwvc3ZnPgo=' };
+    const LOGO_W = 774, LOGO_H = 288;
+    const W = 1080, H = 1350, M = 48, TOP = 96, BOTTOM = 56, MAXW = W - 2 * M;
+    const PAPER = '#eef0e4', OLIVE = '#272818', LIME = '#dcf04a', LEAN = 0.1584;
+    const GROUND = {
+      paper: { bg: PAPER, ink: OLIVE, muted: '#5c5e48', rule: '#c9cdb5', raised: '#f7f8f1', moss: '#56620a', logo: 'olive' },
+      olive: { bg: OLIVE, ink: PAPER, muted: '#a6a98f', rule: '#3d3f2e', raised: '#212216', moss: '#b9cc3a', logo: 'paper' },
+    };
+    const FACE = {
+      cond: { css: (s) => `800 ${s}px "Bricolage Grotesque Condensed", "Arial Narrow", sans-serif`, xh: 0.528, cap: 0.66 },
+      med: { css: (s) => `500 ${s}px Archivo, Arial, sans-serif`, xh: 0.526, cap: 0.686 },
+      bold: { css: (s) => `700 ${s}px Archivo, Arial, sans-serif`, xh: 0.526, cap: 0.686 },
+    };
+    let CUR = 'paper';   // current ground, so the highlighter can cover the full letters on olive
+    const logos = {};
+    function loadLogos() {
+      return Promise.all(Object.entries(LOGO_SRC).map(([k, src]) => new Promise((res) => { const im = new Image(); im.onload = () => { logos[k] = im; res(); }; im.onerror = res; im.src = src; })));
+    }
+
+    // ---- text with markup ----
+    function tokens(text) {
+      const out = []; let mode = null;
+      for (const part of text.split(/(\*|\[\[|\]\])/)) {
+        if (part === '*') mode = mode === 'hl' ? null : 'hl';
+        else if (part === '[[') mode = 'redact';
+        else if (part === ']]') mode = null;
+        else for (const w of part.split(/\s+/).filter(Boolean)) out.push([w, mode]);
+      }
+      return out;
+    }
+    const tw = (x, face, size, t) => { x.font = FACE[face].css(size); return x.measureText(t).width; };
+    // Returns { last, hl } where last is the final baseline. draw=false measures only.
+    function block(x, text, face, size, px, py, maxw, lead, ink, draw = true) {
+      const words = tokens(text), sp = tw(x, face, size, ' ');
+      const lines = []; let cur = [], cw = 0;
+      for (const [w, m] of words) {
+        const ww = tw(x, face, size, w);
+        if (cur.length && cw + sp + ww > maxw) { lines.push(cur); cur = []; cw = 0; }
+        cur.push([w, m, ww]); cw += (cur.length > 1 ? sp : 0) + ww;
+      }
+      if (cur.length) lines.push(cur);
+      const xh = FACE[face].xh * size, cap = FACE[face].cap * size;
+      const under = [], over = []; let hlCount = 0;
+      lines.forEach((line, i) => {
+        const base = py + i * lead; let cx = px; const spans = [];
+        for (const [w, m, ww] of line) {
+          if (m && spans.length && spans[spans.length - 1][0] === m && spans[spans.length - 1][3]) spans[spans.length - 1][2] = cx + ww;
+          else if (m) spans.push([m, cx, cx + ww, true]);
+          if (spans.length && !m) spans[spans.length - 1][3] = false;
+          if (m !== 'redact') { const wx = cx; over.push(() => { x.font = FACE[face].css(size); x.fillStyle = m === 'hl' ? OLIVE : ink; x.textBaseline = 'alphabetic'; x.fillText(w, wx, base); }); }
+          cx += ww + sp;
+        }
+        for (const [m, a, b] of spans) {
+          if (m === 'hl') {
+            hlCount++;
+            const pad = 0.06 * size, top = CUR === 'olive' ? base - cap * 1.02 : base - xh * 0.62, bot = base + 0.08 * size, mid = (top + bot) / 2;
+            const sh = (y) => LEAN * (mid - y);
+            under.push(() => { x.fillStyle = LIME; x.beginPath(); x.moveTo(a - pad + sh(top), top); x.lineTo(b + pad + sh(top), top); x.lineTo(b + pad + sh(bot), bot); x.lineTo(a - pad + sh(bot), bot); x.closePath(); x.fill(); });
+          } else {
+            const tab = 0.14 * size, h = cap * 1.04;
+            over.push(() => { x.fillStyle = ink; x.fillRect(a, base - h, b - a - tab, h); x.fillStyle = LIME; x.fillRect(b - tab, base - h, tab, h); });
+          }
+        }
+      });
+      if (draw) { under.forEach((f) => f()); over.forEach((f) => f()); }
+      return { last: py + (lines.length - 1) * lead, hl: hlCount, lines: lines.length };
+    }
+    function label(x, text, px, py, color, size = 28) {
+      x.font = FACE.bold.css(size); x.fillStyle = color; x.textBaseline = 'alphabetic';
+      let cx = px; for (const ch of text.toUpperCase()) { x.fillText(ch, cx, py); cx += x.measureText(ch).width + 0.12 * size; }
+    }
+    function rightText(x, face, size, t, rx, y, color) { x.font = FACE[face].css(size); x.fillStyle = color; x.textAlign = 'right'; x.fillText(t, rx, y); x.textAlign = 'left'; }
+    function footer(x, G, n, total, source) {
+      const y = H - BOTTOM;
+      rightText(x, 'med', 26, `${n} / ${total}`, W - M, y, G.muted);
+      if (source) block(x, source, 'med', 24, M, y, MAXW - 160, 32, G.muted);
+    }
+    function footnoteLine(x, G, text, px, py, size) {
+      x.font = FACE.bold.css(size); const oneW = x.measureText('1').width, cap = FACE.bold.cap * size, p = size * 0.22;
+      x.save(); x.transform(1, 0, -LEAN, 1, (py - cap / 2) * LEAN, 0);
+      x.fillStyle = LIME; x.fillRect(px, py - cap - p, oneW + 2 * p, cap + 2 * p);
+      x.fillStyle = OLIVE; x.fillText('1', px + p, py); x.restore();
+      x.font = FACE.med.css(size); x.fillStyle = G.muted; x.fillText(text, px + oneW + 2 * p + size * 0.5, py);
+    }
+    function grid(x, G) {
+      x.strokeStyle = G.rule; x.lineWidth = 1.5; x.beginPath();
+      for (let gx = 0; gx <= W; gx += 64) { x.moveTo(gx, 0); x.lineTo(gx, H); }
+      for (let gy = 0; gy <= H; gy += 64) { x.moveTo(0, gy); x.lineTo(W, gy); }
+      x.stroke();
+    }
+
+    // ---- slide types ----
+    const need = { cover: ['kicker', 'headline'], point: ['headline'], figure: ['kicker'], conclusion: ['headline', 'lead'], signoff: [] };
+    function drawSlide(x, s, G, n, total, ctxo) {
+      const ink = G.ink; let hl = 0, lines = 0;
+      const B = (...a) => { const r = block(x, ...a); hl += r.hl; lines = Math.max(lines, r.lines); return r; };
+      if (s.type === 'cover') {
+        if (s.grid) grid(x, G);
+        label(x, s.kicker, M, TOP + 20, G.moss);
+        x.font = FACE.bold.css(36); x.fillStyle = ink; x.fillText(ctxo.handle, M, H - BOTTOM - 22);
+        rightText(x, 'med', 28, 'swipe →', W - M, H - BOTTOM - 22, G.muted);
+        let capY = H - BOTTOM - 84 - 60;
+        if (s.caption) { const ch = block(x, s.caption, 'med', 36, 0, 0, MAXW, 46, '#000', false).last; B(s.caption, 'med', 36, M, capY - ch, MAXW, 46, G.muted); capY -= ch + 42 + 40; }
+        const hh = block(x, s.headline, 'cond', 150, 0, 0, MAXW, 136, '#000', false).last;
+        B(s.headline, 'cond', 150, M, capY - hh, MAXW, 136, ink);
+      } else if (s.type === 'conclusion') {
+        label(x, s.kicker || 'The answer', M, TOP + 20, G.moss);
+        const y = TOP + 20 + 72 + 96;
+        const r = B(s.headline, 'cond', 128, M, y + 20, MAXW, 118, ink);
+        B(s.lead, 'med', 50, M, r.last + 120, 940, 68, ink);
+        footer(x, G, n, total, s.source);
+      } else if (s.type === 'point') {
+        if (s.kicker) label(x, s.kicker, M, TOP + 20, G.muted);
+        const r = B(s.headline, 'cond', 116, M, TOP + 20 + 72 + 100, MAXW, 108, ink);
+        if (s.body) B(s.body, 'med', 46, M, r.last + 110, 960, 64, ink);
+        footer(x, G, n, total, s.source);
+      } else if (s.type === 'figure') {
+        const k = block(x, s.kicker.toUpperCase(), 'bold', 28, M, TOP + 20, MAXW, 38, G.muted);
+        let y = k.last + 72;
+        if (s.headline) { const r = B(s.headline, 'cond', 104, M, y + 60, MAXW, 98, ink); y = r.last + 110; }
+        const rows = s.rows, top = Math.max(...rows.map((r) => r[1])), unit = s.unit || '';
+        const lw = 330, vw = 160, tx = M + lw, tww = MAXW - lw - vw, rh = 104;
+        rows.forEach((r, i) => {
+          const ry = y + i * rh;
+          x.font = FACE.med.css(36); x.fillStyle = ink; x.fillText(r[0], M, ry + 44);
+          x.fillStyle = G.raised; x.fillRect(tx, ry + 8, tww, 52); x.strokeStyle = G.rule; x.lineWidth = 2; x.strokeRect(tx, ry + 8, tww, 52);
+          const bw = top ? tww * r[1] / top : 0;
+          if (r[2]) { x.fillStyle = LIME; x.fillRect(tx + 1.5, ry + 9.5, Math.max(0, bw - 3), 49); if (G === GROUND.paper) { x.strokeStyle = OLIVE; x.lineWidth = 3; x.strokeRect(tx + 1.5, ry + 9.5, Math.max(0, bw - 3), 49); } }
+          else { x.fillStyle = G.muted; x.fillRect(tx, ry + 8, bw, 52); }
+          rightText(x, 'bold', 40, `${+r[1]}${unit}`, W - M, ry + 48, ink);
+        });
+        footer(x, G, n, total, s.source);
+      } else if (s.type === 'signoff') {
+        x.font = FACE.cond.css(170); x.fillStyle = ink; x.fillText(ctxo.handle, M, 560);
+        footnoteLine(x, G, s.footnote || "you didn't see this account, don't follow me.", M, 660, 38);
+        if (s.line) { x.font = FACE.med.css(38); x.fillStyle = G.muted; x.fillText(s.line, M, 736); }
+        if (ctxo.made && logos[G.logo]) {
+          x.font = FACE.med.css(26); x.fillStyle = G.muted; x.fillText('Made with', M, H - BOTTOM - 40);
+          const lh = 80, lw = lh * LOGO_W / LOGO_H; x.drawImage(logos[G.logo], M + 150, H - BOTTOM - 40 - lh * 0.74, lw, lh);
+        }
+      }
+      return { hl, lines };
+    }
+
+    // ---- parse ----
+    function parsePost(text) {
+      const slides = [], errors = [];
+      text.split(/^\s*---\s*$/m).map((b) => b.trim()).filter(Boolean).forEach((blk, i) => {
+        const ls = blk.split(/\r?\n/).map((l) => l.trim()).filter(Boolean), type = ls[0].toLowerCase();
+        if (!(type in need)) { errors.push(`Slide ${i + 1}: unknown type "${ls[0]}". Use cover, point, figure, conclusion or signoff.`); return; }
+        const s = { type, rows: [] };
+        for (const l of ls.slice(1)) {
+          const m = l.match(/^([a-z]+)\s*:\s*(.*)$/i); if (!m) { errors.push(`Slide ${i + 1}: cannot read "${l}". Use "field: value".`); continue; }
+          const key = m[1].toLowerCase(), val = m[2];
+          if (key === 'row') { const p = val.split('|').map((t) => t.trim()); const num = Number(p[1]); if (!p[0] || p[1] === undefined || !isFinite(num) || num < 0) errors.push(`Slide ${i + 1}: row needs "label | number" (not negative).`); else s.rows.push([p[0], num, /^hero$/i.test(p[2] || '')]); }
+          else if (key === 'grid') s.grid = /^(y|yes|true|1)$/i.test(val);
+          else s[key] = val;
+        }
+        const miss = need[type].filter((f) => !s[f]); if (type === 'figure' && !s.rows.length) miss.push('row');
+        if (miss.length) errors.push(`Slide ${i + 1} (${type}): needs ${miss.join(', ')}.`);
+        else slides.push(s);
+      });
+      if (slides.length > 12) errors.push('Twelve slides at most.');
+      return { slides: slides.slice(0, 12), errors };
+    }
+
+    let canvases = [], timer = null, ready = false;
+    async function render() {
+      const { slides, errors } = parsePost($('src').value);
+      $('err').style.display = errors.length ? 'block' : 'none'; $('err').textContent = errors.join(' ');
+      CUR = $('ground').value; const G = GROUND[CUR] || GROUND.paper, ctxo = { handle: $('handle').value.trim() || '@yourhandle', made: $('made').checked };
+      if (!ready) { try { await Promise.all([document.fonts.load(FACE.cond.css(100)), document.fonts.load(FACE.med.css(30)), document.fonts.load(FACE.bold.css(30)), loadLogos()]); } catch (e) {} ready = true; }
+      const wrap = $('slides'); wrap.innerHTML = ''; canvases = [];
+      slides.forEach((s, i) => {
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const x = c.getContext('2d'); x.fillStyle = G.bg; x.fillRect(0, 0, W, H);
+        const r = drawSlide(x, s, G, i + 1, slides.length, ctxo);
+        const notes = []; if (r.hl > 1) notes.push(`${r.hl} highlights. Keep one per slide.`); if (r.lines > 6) notes.push('Long. Consider shortening.');
+        const card = document.createElement('div'); card.className = 'scard';
+        card.innerHTML = `<div class="t">${i + 1}. ${s.type}</div>`;
+        card.appendChild(c);
+        if (notes.length) { const nn = document.createElement('div'); nn.className = 'n'; nn.textContent = notes.join(' '); card.appendChild(nn); }
+        const b = document.createElement('button'); b.textContent = 'Download PNG'; b.addEventListener('click', () => save(c, i, s.type)); card.appendChild(b);
+        wrap.appendChild(card); canvases.push([c, s.type]);
+      });
+    }
+    function save(c, i, type) {
+      c.toBlob((blob) => { if (!blob) return; const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `slide-${String(i + 1).padStart(2, '0')}-${type}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }, 'image/png');
+    }
+    function update() { clearTimeout(timer); timer = setTimeout(render, 200); }
+    $('all').addEventListener('click', () => { canvases.forEach(([c, t], i) => setTimeout(() => save(c, i, t), i * 400)); });
+    wireCopy('copy', 'copied');
+    bindInputs(IDS, DEFAULTS, update);
+
+  </script>
+</body>
+</html>
