@@ -121,6 +121,14 @@
     code { font-family: ui-monospace, Menlo, monospace; font-size: 0.88em; }
 
     @media (prefers-color-scheme: dark) { h1 mark, .big span { background: linear-gradient(transparent 4%, var(--lime) 4%, var(--lime) 98%, transparent 98%); } }
+
+    /* polish: aligned inputs, chart label halo, next-step link */
+    .inputs, .adv { align-items: end; }
+    #chart .cap { paint-order: stroke; stroke: var(--paper-raised); stroke-width: 4px; stroke-linejoin: round; }
+    .next-step { border: 1px solid var(--rule); border-left: 4px solid var(--ink); background: var(--paper-raised); padding: 14px 16px; margin: 24px 0 0; }
+    .next-step .k { color: var(--ink-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .next-step a { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; text-transform: lowercase; }
+    .next-step p { margin: 4px 0 0; color: var(--ink-muted); font-size: 0.92rem; }
   </style>
 </head>
 <body>
@@ -133,11 +141,11 @@
 
     <section class="panel">
       <label class="field">Your post, one slide per block, blocks separated by a line of three dashes
-        <textarea id="src" rows="22" spellcheck="false" style="font-family: ui-monospace, Menlo, monospace; font-size: .88rem; line-height: 1.45"></textarea></label>
+        <textarea autocomplete="off" id="src" rows="22" spellcheck="false" style="font-family: ui-monospace, Menlo, monospace; font-size: .88rem; line-height: 1.45"></textarea></label>
       <div class="inputs tight" style="margin-top:12px">
-        <label class="field">Your handle (on the cover and sign-off)<input type="text" id="handle" maxlength="40"></label>
-        <label class="field">Ground<select id="ground"><option value="paper" selected>Paper</option><option value="olive">Olive (night shift)</option></select></label>
-        <label class="check" style="align-self:end"><input type="checkbox" id="made"> Add the "made with ben.j.ads" mark</label>
+        <label class="field">Your handle (on the cover and sign-off)<input autocomplete="off" type="text" id="handle" maxlength="40"></label>
+        <label class="field">Ground<select autocomplete="off" id="ground"><option value="paper" selected>Paper</option><option value="olive">Olive (night shift)</option></select></label>
+        <label class="check" style="align-self:end"><input autocomplete="off" type="checkbox" id="made"> Add the "made with ben.j.ads" mark</label>
       </div>
       <div id="err" role="alert"></div>
     </section>
